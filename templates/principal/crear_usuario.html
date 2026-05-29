@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Nuevo Usuario | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container create-user-container">
+    <div class="glass-card create-user-card animate__animated animate__fadeInUp">
+        <h2 class="text-gradient fw-bold mb-4 text-center">Crear Nuevo Usuario</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-3">
+                <div class="col-md-6" id="div_curp">
+                    <div class="form-floating mb-3">
+                        <input type="text" name="curp" id="id_curp" class="form-control" placeholder="CURP"
+                            maxlength="18">
+                        <label for="id_curp">CURP</label>
+                    </div>
+                </div>
+                <div class="col-md-6" id="div_username">
+                    <div class="form-floating mb-3">
+                        <input type="text" name="username" id="id_username" class="form-control"
+                            placeholder="Nombre de Usuario">
+                        <label for="id_username">Nombre de Usuario</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6" id="div_first_name">
+                    <div class="form-floating mb-3">
+                        <input type="text" name="first_name" id="id_first_name" class="form-control"
+                            placeholder="Nombre" required>
+                        <label for="id_first_name" id="label_first_name">Nombre</label>
+                    </div>
+                </div>
+                <div class="col-md-6" id="div_last_name">
+                    <div class="form-floating mb-3">
+                        <input type="text" name="last_name" id="id_last_name" class="form-control"
+                            placeholder="Apellido">
+                        <label for="id_last_name" id="label_last_name">Apellido</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="email" name="email" id="id_email" class="form-control" placeholder="Correo Electrónico"
+                    required>
+                <label for="id_email">Correo Electrónico</label>
+            </div>
+
+            <div class="form-floating mb-4">
+                <input type="password" name="password" id="id_password" class="form-control" placeholder="Contraseña"
+                    required>
+                <label for="id_password">Contraseña</label>
+            </div>
+
+            <h5 class="fw-bold mb-3">Tipo de Usuario</h5>
+            <div class="role-select-group">
+                <div class="role-option">
+                    <input type="radio" name="role" id="role_empleado" value="empleado" checked>
+                    <label for="role_empleado" class="role-label">
+                        <i class="bi bi-person-workspace"></i>
+                        <span>Empleado</span>
+                    </label>
+                </div>
+                <div class="role-option">
+                    <input type="radio" name="role" id="role_empresa" value="empresa">
+                    <label for="role_empresa" class="role-label">
+                        <i class="bi bi-building"></i>
+                        <span>Empresa</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary flex-grow-1 py-3"
+                    style="border-radius: 12px;">Cancelar</a>
+                <button type="submit" class="btn btn-custom flex-grow-1 py-3">Crear Usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const roleEmpleado = document.getElementById('role_empleado');
+        const roleEmpresa = document.getElementById('role_empresa');
+
+        const divCurp = document.getElementById('div_curp');
+        const divUsername = document.getElementById('div_username');
+        const divLastName = document.getElementById('div_last_name');
+
+        const labelFirstName = document.getElementById('label_first_name');
+        const inputFirstName = document.getElementById('id_first_name');
+        const labelLastName = document.getElementById('label_last_name');
+        const inputLastName = document.getElementById('id_last_name');
+
+        const inputCurp = document.getElementById('id_curp');
+        const inputUsername = document.getElementById('id_username');
+
+        function updateLabels() {
+            if (roleEmpresa.checked) {
+                divCurp.style.display = 'none';
+                divUsername.style.display = 'block';
+                divLastName.style.display = 'block';
+
+                labelFirstName.textContent = 'Nombre de la Empresa';
+                inputFirstName.placeholder = 'Nombre de la Empresa';
+                inputFirstName.required = true;
+
+                labelLastName.textContent = 'Razón Social / RFC';
+                inputLastName.placeholder = 'Razón Social / RFC';
+                inputLastName.required = true;
+
+                inputCurp.required = false;
+                inputUsername.required = true;
+            } else {
+                divCurp.style.display = 'block';
+                divUsername.style.display = 'none';
+                divLastName.style.display = 'block';
+
+                labelFirstName.textContent = 'Nombre(s)';
+                inputFirstName.placeholder = 'Nombre(s)';
+                inputFirstName.required = true;
+
+                labelLastName.textContent = 'Apellidos';
+                inputLastName.placeholder = 'Apellidos';
+                inputLastName.required = true;
+
+                inputCurp.required = true;
+                inputUsername.required = false;
+            }
+        }
+
+        roleEmpleado.addEventListener('change', updateLabels);
+        roleEmpresa.addEventListener('change', updateLabels);
+
+        updateLabels();
+    })();
+</script>
+{% endblock %}

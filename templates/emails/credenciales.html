@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 40px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .greeting {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .credentials {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .credential-item {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            color: #94a3b8;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .value {
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+            color: white !important;
+            padding: 16px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            width: calc(100% - 64px);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="logo">CyberPyme Yucatán</div>
+        </div>
+        <div class="greeting">¡Hola, {{ first_name }}! 👋</div>
+        <p>Tu cuenta ha sido creada exitosamente en nuestra plataforma de capacitación en ciberseguridad.</p>
+
+        <div class="credentials">
+            <div class="credential-item">
+                <div class="label">Usuario / CURP</div>
+                <div class="value">{{ username }}</div>
+            </div>
+            <div class="credential-item">
+                <div class="label">Contraseña</div>
+                <div class="value">{{ password }}</div>
+            </div>
+        </div>
+
+        <a href="{{ login_url }}" class="btn">Acceder a mi Dashboard</a>
+
+        <div class="footer">
+            <p>Si no solicitaste esta cuenta, por favor ignora este correo.</p>
+            <p>&copy; 2026 CyberPyme Yucatán. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+
+</html>

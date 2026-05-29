@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Auditoría de Capacitación | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container auditoria-container">
+    <div class="hero-auditoria animate__animated animate__fadeIn">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div>
+                <h1 class="text-gradient fw-bold mb-2">Auditoría de Avances</h1>
+                <p class="text-muted mb-0">Monitoreo detallado del progreso de capacitación por empleado y empresa.</p>
+            </div>
+            <div class="d-flex gap-3">
+                <input type="text" id="searchInput" class="search-box" placeholder="Buscar empleado o empresa...">
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container shadow-lg animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table table-custom" id="auditoriaTable">
+                <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Empresa</th>
+                        <th>Progreso General</th>
+                        <th>Estado de Cursos</th>
+                        <th class="text-end">Puntos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in empleados_stats %}
+                    <tr class="auditoria-row">
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle"
+                                    style="width: 35px; height: 35px; background: var(--accent-glow); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent);">
+                                    {{ stat.empleado.username|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ stat.empleado.first_name }} {{ stat.empleado.last_name }}
+                                    </div>
+                                    <div class="text-muted small">@{{ stat.empleado.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if stat.empresa %}
+                            <span class="empresa-tag"><i class="bi bi-building me-1"></i> {{ stat.empresa.username
+                                }}</span>
+                            {% else %}
+                            <span class="text-muted small">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="progress progress-compact">
+                                    <div class="progress-bar {% if stat.porcentaje == 100 %}bg-success{% else %}bg-accent{% endif %}"
+                                        role="progressbar" style="width: {{ stat.porcentaje }}%"></div>
+                                </div>
+                                <span class="fw-bold" style="font-size: 0.85rem;">{{ stat.porcentaje }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                {% for ce in stat.cursos_estados %}
+                                <div class="course-mini-badge {% if ce.estado == 'completado' %}bg-success{% elif ce.estado == 'en_curso' %}bg-warning{% else %}bg-secondary opacity-25{% endif %}"
+                                    title="{{ ce.titulo }}: {{ ce.estado_display }}"></div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="text-end fw-bold text-accent">
+                            {{ stat.completados }} / {{ stat.total }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
+                            <p class="text-muted">No se encontraron empleados registrados.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+        const value = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.auditoria-row');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

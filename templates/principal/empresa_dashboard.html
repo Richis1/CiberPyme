@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Empresa | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container empresa-container">
+    <!-- Header -->
+    <div class="company-header animate__animated animate__fadeIn">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-primary mb-3">Cuenta Corporativa</span>
+                <h1 class="text-gradient fw-bold mb-2">{{ user.first_name|default:user.username }}</h1>
+                <p class="text-muted mb-0">Gestión de ciberseguridad y cumplimiento normativo.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <button class="btn btn-custom">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar Reporte Mensual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="stat-number">{{ total_empleados }}</div>
+                <div class="stat-label">Empleados</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="stat-number">{{ avg_capacitacion }}%</div>
+                <div class="stat-label">Capacitación</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <div class="stat-number">{{ total_simulaciones }}</div>
+                <div class="stat-label">Actividades</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                <div class="stat-number text-{{ riesgo_color }}">{{ riesgo_global }}</div>
+                <div class="stat-label">Riesgo Global</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Data: Tracking Empleados -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Seguimiento de Empleados</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle flex-nowrap" style="color: var(--text);">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border);">
+                                <th>Empleado</th>
+                                <th>Email</th>
+                                <th>Progreso Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in empleados_stats %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ stat.empleado.first_name }} {{ stat.empleado.last_name }}
+                                    </div>
+                                    <div class="small text-muted">{{ stat.empleado.username }}</div>
+                                </td>
+                                <td>{{ stat.empleado.email }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 border border-secondary"
+                                            style="height: 8px; background: var(--bg-body); margin-right: 10px;">
+                                            <div class="progress-bar bg-accent" style="width: {{ stat.porcentaje }}%;">
+                                            </div>
+                                        </div>
+                                        <span class="small fw-bold">{{ stat.porcentaje }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No hay empleados registrados en esta
+                                    empresa.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <h3 class="fw-bold mb-4">Acciones Rápidas</h3>
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="glass-card quick-action-card animate__animated animate__fadeInRight"
+                        style="animation-delay: 0.5s;" data-bs-toggle="modal" data-bs-target="#altaEmpleadoModal">
+                        <div class="action-icon"><i class="bi bi-person-plus-fill"></i></div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Alta de Empleado</h5>
+                            <p class="text-muted small mb-0">Añadir nuevos empleados</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="glass-card quick-action-card animate__animated animate__fadeInRight"
+                        style="animation-delay: 0.6s;" onclick="window.location.href='{% url 'diplomas' %}'">
+                        <div class="action-icon" style="background: #10b981;"><i class="bi bi-award-fill"></i></div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Módulo de Diplomas</h5>
+                            <p class="text-muted small mb-0">Ver diplomas de empleados completados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alta Empleado Modal -->
+    <div class="modal fade" id="altaEmpleadoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="background: var(--bg-card); border: 1px solid var(--border); color: var(--text);">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold">Alta de Nuevo Empleado</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'empresa_dashboard' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">CURP (Se usará como usuario)</label>
+                            <input type="text" name="username" class="form-control"
+                                style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text);"
+                                placeholder="Ingrese el CURP" maxlength="18" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Nombre(s)</label>
+                            <input type="text" name="first_name" class="form-control"
+                                style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text);"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Apellidos</label>
+                            <input type="text" name="last_name" class="form-control"
+                                style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text);"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control"
+                                style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text);"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Contraseña</label>
+                            <input type="password" name="password" class="form-control"
+                                style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text);"
+                                required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0">
+                        <button type="button" class="btn btn-secondary border-0"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-custom">Dar de Alta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

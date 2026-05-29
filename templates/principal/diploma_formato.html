@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diploma - {{ curso.titulo }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #c5a059;
+            --navy: #0f172a;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .diploma-wrapper {
+            background: white;
+            width: 1000px;
+            height: 700px;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            border: 20px solid white;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Borde decorativo */
+        .diploma-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 2px solid var(--gold);
+            pointer-events: none;
+        }
+
+        .diploma-content {
+            height: 100%;
+            border: 1px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-ssp {
+            height: 80px;
+        }
+
+        .logo-yuc {
+            height: 60px;
+        }
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            color: var(--navy);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--gold);
+            font-weight: 600;
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .granted-to {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-top: 30px;
+        }
+
+        .user-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--navy);
+            margin: 10px 0;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 5px;
+            min-width: 400px;
+        }
+
+        .course-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-top: 20px;
+        }
+
+        .date {
+            margin-top: 40px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            width: 100%;
+            margin-top: auto;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: 20px;
+        }
+
+        .signature {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 10px;
+            width: 200px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .seal {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        @media print {
+            body { background: white; }
+            .diploma-wrapper { box-shadow: none; margin: 0; }
+            .btn-print { display: none; }
+        }
+
+        .btn-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <button class="btn-print" onclick="window.print()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+            <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+        </svg>
+        Imprimir Diploma
+    </button>
+
+    <div class="diploma-wrapper">
+        <div class="diploma-content">
+            <div class="header">
+                <img src="{% static 'principal/images/escudo_ssp.png' %}" class="logo-ssp" alt="SSP Yucatán">
+                <img src="{% static 'principal/images/logo_yucatan.svg' %}" class="logo-yuc" alt="Yucatán">
+            </div>
+
+            <h1 class="title">Reconocimiento</h1>
+            <div class="subtitle">Secretaría de Seguridad Pública</div>
+
+            <div class="granted-to">Se otorga el presente diploma a:</div>
+            <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+
+            <div class="granted-to">Por haber completado satisfactoriamente el curso:</div>
+            <div class="course-name">{{ curso.titulo }}</div>
+
+            <div class="date">Expedido el {{ fecha_hoy|date:"d \d\e F \d\e Y" }}</div>
+
+            <div class="footer">
+                <div class="signature">
+                    Dirección de Tecnologías<br>
+                    SSP Yucatán
+                </div>
+                <div class="signature">
+                    Centro de Capacitación<br>
+                    CyberPyme Yucatán
+                </div>
+            </div>
+
+            <img src="{% static 'principal/images/escudo_ssp.png' %}" class="seal" width="200">
+        </div>
+    </div>
+</body>
+</html>

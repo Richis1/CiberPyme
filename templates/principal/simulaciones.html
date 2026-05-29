@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Simulaciones de Seguridad | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5 animate__animated animate__fadeInDown">
+        <div class="col-md-8">
+            <h1 class="display-4 fw-bold text-gradient">Centro de Entrenamiento</h1>
+            <p class="lead text-muted">Pon a prueba tus instintos con simulaciones de amenazas en tiempo real.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for item in simulaciones %}
+        <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+            <div class="glass-card sim-card h-100 p-4 d-flex flex-column">
+                <span class="badge-points">+{{ item.sim.puntos }} PTS</span>
+                <div class="sim-icon">
+                    <i class="bi {{ item.sim.icono }}"></i>
+                </div>
+                <h3 class="fw-bold mb-3">{{ item.sim.titulo }}</h3>
+                <p class="text-muted flex-grow-1 small">{{ item.sim.descripcion }}</p>
+                
+                <div class="mt-4 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if item.completado %}
+                            <span class="text-success small fw-bold">
+                                <i class="bi bi-patch-check-fill me-1"></i> Completado ({{ item.puntaje }} pts)
+                            </span>
+                        {% else %}
+                            <span class="text-muted small">Pendiente</span>
+                        {% endif %}
+                    </div>
+                    {% if item.completado %}
+                        <a href="{% url 'ejecutar_simulacion' item.sim.id %}" class="btn btn-outline-accent btn-sm rounded-pill px-3">
+                            Ver Desafíos
+                        </a>
+                    {% else %}
+                        <a href="{% url 'ejecutar_simulacion' item.sim.id %}" class="btn btn-custom btn-sm rounded-pill px-4">
+                            Comenzar <i class="bi bi-play-fill ms-1"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5 border-dashed border-2">
+                <i class="bi bi-shield-slash display-1 text-muted mb-4"></i>
+                <h3 class="fw-bold">No hay simulaciones disponibles</h3>
+                <p class="text-muted">El equipo de seguridad está preparando nuevos desafíos interactivos para ti.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

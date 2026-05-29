@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="glass-card hero-banner animate__animated animate__fadeInDown">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-3" style="color: var(--text);">
+                    Hola, <span class="text-gradient">{{ user.username }}</span>
+                </h1>
+                {% if user.perfil.empresa %}
+                <div class="mb-3">
+                    <span class="badge bg-primary px-3 py-2" style="font-size: 0.9rem; border-radius: 10px;">
+                        <i class="bi bi-building me-2"></i> Perteneces a: <strong>{{ user.perfil.empresa.username
+                            }}</strong>
+                    </span>
+                </div>
+                {% endif %}
+                <p class="lead text-muted mb-0">
+                    Bienvenido a CyberPyme Yucatán. Protege tu información y capacita a tu equipo.
+                </p>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center">
+                <img src="{% static 'principal/images/escudo_ssp.png' %}" alt="SSP Escudo" class="img-fluid"
+                    style="max-height: 200px; opacity: 0.9;">
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <h3 class="home-section-title" style="color: var(--text);">
+                <i class="bi bi-journal-bookmark-fill text-accent"></i> Tus Cursos Activos
+            </h3>
+            <div class="row g-4">
+                {% for progreso in progresos|slice:":2" %}
+                <div class="col-md-6">
+                    <div class="glass-card course-card-premium">
+                        <div>
+                            <div class="course-icon-wrapper">
+                                <i class="bi {{ progreso.curso.icono|default:'bi-book' }}"></i>
+                            </div>
+                            <h5 class="fw-bold mb-2" style="color: var(--text);">{{ progreso.curso.titulo }}</h5>
+                            <p class="text-muted small mb-0">{{ progreso.curso.descripcion }}</p>
+                        </div>
+                        <div class="mt-4">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" style="width: {{ progreso.porcentaje }}%;"></div>
+                            </div>
+                            <a href="{% url 'ver_curso' progreso.curso.id %}"
+                                class="btn btn-outline-primary w-100 rounded-pill mt-3">Continuar</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted p-4">No hay cursos disponibles.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <h3 class="home-section-title" style="color: var(--text);">
+                <i class="bi bi-exclamation-triangle-fill text-danger"></i> Alertas
+            </h3>
+            {% if alertas %}
+            <div id="alertsCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for alerta in alertas %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <div class="glass-card alert-card-premium p-4 mb-4"
+                            style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                            <span
+                                class="badge {% if alerta.nivel == 'alta' %}bg-danger{% elif alerta.nivel == 'media' %}bg-warning text-dark{% else %}bg-info{% endif %} mb-3 w-auto"
+                                style="align-self: flex-start;">
+                                {{ alerta.get_nivel_display }}
+                            </span>
+                            <h5 class="fw-bold text-white mb-2">{{ alerta.titulo }}</h5>
+                            <p class="text-white small mb-0">{{ alerta.descripcion }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <!-- Controles del Carrusel (opcionales) -->
+                {% if alertas|length > 1 %}
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button class="btn btn-sm btn-outline-light rounded-circle" type="button"
+                        data-bs-target="#alertsCarousel" data-bs-slide="prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-light rounded-circle" type="button"
+                        data-bs-target="#alertsCarousel" data-bs-slide="next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="glass-card p-4 text-center">
+                <p class="text-muted mb-0">No hay alertas activas.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

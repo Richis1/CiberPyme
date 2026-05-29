@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Desafío: {{ simulacion.titulo }} | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="sim-container">
+        <div class="animate__animated animate__fadeIn">
+            <div class="d-flex justify-content-between align-items-end mb-3">
+                <div>
+                    <h2 class="fw-bold m-0 text-gradient">{{ simulacion.titulo }}</h2>
+                    <p class="text-muted small m-0">Evalúa la imagen y decide si representa un riesgo para la empresa.</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-input text-accent rounded-pill px-3 py-2 border border-accent">
+                        <i class="bi bi-layers me-1"></i> <span id="stepCounter">Paso 1 de {{ desafios.count }}</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="progress-bar-container">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div id="simulationEngine">
+            {% for d in desafios %}
+            <div class="challenge-step d-none" id="step-{{ forloop.counter0 }}" 
+                 data-id="{{ d.id }}" data-es-peligro="{{ d.es_peligro|lower }}">
+                
+                <div class="challenge-img-container animate__animated animate__zoomIn">
+                    {% if d.imagen %}
+                    <img src="{{ d.imagen.url }}" class="challenge-img" alt="Escenario de Seguridad">
+                    {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-image-fill display-1 opacity-25"></i>
+                        <p class="mt-3">Escenario visual no cargado</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="feedback-overlay" id="feedback-{{ forloop.counter0 }}">
+                        <div class="feedback-icon" id="icon-{{ forloop.counter0 }}"></div>
+                        <h2 class="fw-bold mb-3" id="title-{{ forloop.counter0 }}"></h2>
+                        <div class="glass-card p-4 mb-4 border-accent" style="max-width: 600px;">
+                            <p class="lead mb-0">{{ d.explicacion }}</p>
+                        </div>
+                        <button class="btn btn-custom px-5 py-3 rounded-pill next-btn h5 shadow">
+                            Continuar Desafío <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center mb-5 mt-n2">
+                    <div class="glass-card d-inline-block px-4 py-3 border-accent animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                        <span class="lead fw-bold">{{ d.texto_complementario|default:"Analiza cuidadosamente los detalles de la imagen superior." }}</span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-4 btn-group-actions animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                    <button class="btn btn-action btn-safe choice-btn" onclick="makeChoice({{ forloop.counter0 }}, false)">
+                        <i class="bi bi-shield-check fs-3 d-block mb-1"></i> ES SEGURO
+                    </button>
+                    <button class="btn btn-action btn-threat choice-btn" onclick="makeChoice({{ forloop.counter0 }}, true)">
+                        <i class="bi bi-exclamation-triangle fs-3 d-block mb-1"></i> ES AMENAZA
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div id="resultsScreen" class="glass-card p-5 text-center d-none">
+                <div class="animate__animated animate__bounceIn">
+                    <i class="bi bi-award-fill display-1 text-accent mb-4"></i>
+                    <h1 class="display-4 fw-bold mb-2 text-gradient">¡Excelente Trabajo!</h1>
+                    <p class="lead text-muted mb-5">Has completado el entrenamiento interactivo con éxito.</p>
+                </div>
+                
+                <div class="row g-4 mb-5 max-w-600 mx-auto">
+                    <div class="col-md-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
+                        <div class="p-4 glass-card bg-accent-glow border-accent rounded-4 h-100">
+                            <h4 class="text-muted small fw-bold">PUNTUACIÓN OBTENIDA</h4>
+                            <h1 id="finalScore" class="display-3 fw-bold text-accent mb-0">0</h1>
+                            <span class="badge bg-accent text-dark">PUNTOS XP</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 animate__animated animate__fadeInRight" style="animation-delay: 0.6s;">
+                        <div class="p-4 glass-card border-border rounded-4 h-100">
+                            <h4 class="text-muted small fw-bold">PRECISIÓN TOTAL</h4>
+                            <h1 id="finalAciertos" class="display-3 fw-bold text-white mb-0">0/0</h1>
+                            <span id="finalPercent" class="badge bg-secondary">0% de éxito</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+                    <a href="{% url 'simulaciones' %}" class="btn btn-custom px-5 py-3 rounded-pill h5 shadow-lg">
+                        <i class="bi bi-grid-fill me-2"></i> Ver Más Simulaciones
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    let currentStep = 0;
+    const totalSteps = {{ desafios.count }};
+    const userAnswers = [];
+    const csrftoken = '{{ csrf_token }}';
+
+    function showStep(index) {
+        document.querySelectorAll('.challenge-step').forEach(s => s.classList.add('d-none'));
+        const step = document.getElementById(`step-${index}`);
+        if (step) {
+            step.classList.remove('d-none');
+            
+            // Actualizar UI
+            document.getElementById('stepCounter').innerText = `Paso ${index + 1} de ${totalSteps}`;
+            document.getElementById('progressFill').style.width = `${((index) / totalSteps) * 100}%`;
+        } else if (index >= totalSteps && totalSteps > 0) {
+            submitResults();
+        }
+    }
+
+    function makeChoice(index, choice) {
+        const step = document.getElementById(`step-${index}`);
+        const id = step.dataset.id;
+        const correctValue = step.dataset.esPeligro === 'true';
+        const isCorrect = choice === correctValue;
+        
+        userAnswers.push({ id: id, eleccion: choice });
+        
+        // Mostrar feedback
+        const overlay = document.getElementById(`feedback-${index}`);
+        const iconDiv = document.getElementById(`icon-${index}`);
+        const titleDiv = document.getElementById(`title-${index}`);
+        
+        if (isCorrect) {
+            iconDiv.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+            titleDiv.innerHTML = '<span class="text-success">¡ACIERTO TOTAL!</span>';
+            overlay.querySelector('.glass-card').style.borderColor = '#198754';
+        } else {
+            iconDiv.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+            titleDiv.innerHTML = '<span class="text-danger">ERROR DETECTADO</span>';
+            overlay.querySelector('.glass-card').style.borderColor = '#dc3545';
+        }
+        
+        overlay.classList.add('show');
+        overlay.querySelector('.next-btn').onclick = () => {
+            currentStep++;
+            showStep(currentStep);
+        };
+    }
+
+    async function submitResults() {
+        if (totalSteps === 0) return;
+        
+        const engine = document.getElementById('simulationEngine');
+        engine.style.opacity = '0.7';
+        
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ respuestas: userAnswers })
+            });
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                document.getElementById('progressFill').style.width = '100%';
+                
+                // Mostrar pantalla de resultados
+                document.querySelectorAll('.challenge-step').forEach(s => s.classList.add('d-none'));
+                const resScreen = document.getElementById('resultsScreen');
+                resScreen.classList.remove('d-none');
+                resScreen.classList.add('animate__animated', 'animate__fadeIn');
+                
+                document.getElementById('finalScore').innerText = data.puntos;
+                document.getElementById('finalAciertos').innerText = `${data.aciertos}/${data.total}`;
+                
+                const percent = Math.round((data.aciertos / data.total) * 100);
+                document.getElementById('finalPercent').innerText = `${percent}% de éxito`;
+                
+                engine.style.opacity = '1';
+            }
+        } catch (e) {
+            console.error("Error submitting results:", e);
+            engine.style.opacity = '1';
+        }
+    }
+
+    window.onload = () => {
+        if (totalSteps > 0) {
+            showStep(0);
+        } else {
+            // No hay desafíos
+            document.getElementById('simulationEngine').innerHTML = '<div class="glass-card p-5 text-center"><h3>Esta simulación aún no tiene desafíos configurados.</h3><a href="{% url "simulaciones" %}" class="btn btn-custom mt-3">Volver</a></div>';
+        }
+    };
+</script>
+{% endblock %}
+{% endblock %}

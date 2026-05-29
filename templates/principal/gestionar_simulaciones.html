@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Simulaciones | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="gestionar-header animate__animated animate__fadeInDown">
+        <div>
+            <h1 class="text-gradient fw-bold">Gestionar Simulaciones</h1>
+            <p class="text-muted">Configura los desafíos interactivos por imágenes</p>
+        </div>
+        <a href="{% url 'crear_simulacion' %}" class="btn btn-custom px-4 py-3 rounded-pill">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Simulación
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for sim in simulaciones %}
+        <div class="col-lg-4 col-md-6 animate__animated animate__fadeInUp"
+            style="animation-delay: 0.{{ forloop.counter }}s;">
+            <div class="glass-card sim-card position-relative">
+                <div class="sim-info">
+                    <div class="sim-icon">
+                        <i class="bi {{ sim.icono }}"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">{{ sim.titulo }}</h4>
+                    <p class="text-muted small mb-3">{{ sim.descripcion|truncatewords:15 }}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-input text-accent border border-accent">{{ sim.desafios.count }} Desafíos</span>
+                        <span class="badge bg-secondary">{{ sim.puntos }} XP</span>
+                    </div>
+                </div>
+                <div class="sim-actions">
+                    <a href="{% url 'editar_simulacion' sim.id %}" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </a>
+                    <a href="{% url 'eliminar_simulacion' sim.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                        onclick="return confirm('¿Estás seguro de eliminar esta simulación?')">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5 border-dashed border-2">
+                <i class="bi bi-shield-slash display-1 text-muted mb-4"></i>
+                <h3 class="fw-bold">No hay simulaciones registradas</h3>
+                <p class="text-muted">Comienza creando tu primer entrenamiento interactivo.</p>
+                <a href="{% url 'crear_simulacion' %}" class="btn btn-custom mt-3">Crear primera simulación</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

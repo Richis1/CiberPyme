@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Módulo de Diplomas | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container mb-5">
+    <div class="diploma-header animate__animated animate__fadeInDown">
+        {% if is_company %}
+        <h1>Diplomas de Empleados</h1>
+        <p class="text-muted fs-5">Registro de capacitaciones completadas por tu equipo de trabajo.</p>
+        {% else %}
+        <h1>Mis Diplomas</h1>
+        <p class="text-muted fs-5">Tus reconocimientos por completar módulos de ciberseguridad.</p>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for progreso in progresos %}
+        <div class="col-lg-4 col-md-6 animate__animated animate__fadeInUp"
+            style="animation-delay: 0.{{ forloop.counter }}s;">
+            <div class="diploma-card">
+                <div class="diploma-icon">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <h4>{{ progreso.curso.titulo }}</h4>
+                {% if is_company %}
+                <div class="employee-name">{{ progreso.usuario.first_name }} {{ progreso.usuario.last_name }}</div>
+                {% endif %}
+                <p>Completado exitosamente demostrando conocimientos en {{ progreso.curso.titulo|lower }}.</p>
+                <a href="{% url 'descargar_diploma' progreso.curso.id %}" target="_blank" class="btn btn-download text-decoration-none d-flex align-items-center justify-content-center">
+                    <i class="bi bi-patch-check-fill me-2"></i>Ver Diploma
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 animate__animated animate__fadeIn">
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-journal-x"></i></div>
+                <h3 class="fw-bold">Aún no hay diplomas</h3>
+                {% if is_company %}
+                <p class="text-muted">Ningún empleado ha concluido un curso de formación todavía.</p>
+                {% else %}
+                <p class="text-muted">Desbloquea diplomas completando tus cursos asignados.</p>
+                <a href="{% url 'cursos' %}" class="btn btn-custom mt-3">Ir a mis cursos</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

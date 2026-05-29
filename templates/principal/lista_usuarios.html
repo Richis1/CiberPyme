@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container user-list-container">
+    <div class="d-flex justify-content-between align-items-center mb-5 animate__animated animate__fadeInDown">
+        <div>
+            <h1 class="text-gradient fw-bold mb-1">Gestión de Usuarios</h1>
+            <p class="text-muted mb-0">Listado completo de cuentas registradas en el sistema.</p>
+        </div>
+        <a href="{% url 'crear_usuario' %}" class="btn btn-custom">
+            <i class="bi bi-person-plus-fill me-2"></i> Nuevo Usuario
+        </a>
+    </div>
+
+    <div class="glass-card user-table-card animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>Email</th>
+                        <th>Rol / Estatus</th>
+                        <th>Fecha Registro</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ usuario.username }}</div>
+                        </td>
+                        <td>{{ usuario.get_full_name|default:"-" }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>
+                            {% if usuario.is_superuser %}
+                            <span class="user-badge badge-admin">Master Admin</span>
+                            {% elif usuario.is_staff %}
+                            <span class="user-badge badge-staff">Administrador</span>
+                            {% else %}
+                            <span class="user-badge badge-user">Usuario Final</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ usuario.date_joined|date:"d/m/Y" }}</td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="action-btn" title="Editar"><i class="bi bi-pencil-square"></i></button>
+                                <button class="action-btn" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <p class="text-muted mb-0">No hay usuarios registrados.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

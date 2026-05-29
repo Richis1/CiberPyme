@@ -1,0 +1,154 @@
+=== TABLAS EN LA BASE DE DATOS ===
+
+Table: django_migrations
+  - id: INTEGER NOT NULL (Primary Key)
+  - app: varchar(255) NOT NULL 
+  - name: varchar(255) NOT NULL 
+  - applied: datetime NOT NULL 
+----------------------------------------
+Table: sqlite_sequence
+  - name:  NULL 
+  - seq:  NULL 
+----------------------------------------
+Table: auth_group_permissions
+  - id: INTEGER NOT NULL (Primary Key)
+  - group_id: INTEGER NOT NULL 
+  - permission_id: INTEGER NOT NULL 
+----------------------------------------
+Table: auth_user_groups
+  - id: INTEGER NOT NULL (Primary Key)
+  - user_id: INTEGER NOT NULL 
+  - group_id: INTEGER NOT NULL 
+----------------------------------------
+Table: auth_user_user_permissions
+  - id: INTEGER NOT NULL (Primary Key)
+  - user_id: INTEGER NOT NULL 
+  - permission_id: INTEGER NOT NULL 
+----------------------------------------
+Table: django_admin_log
+  - id: INTEGER NOT NULL (Primary Key)
+  - object_id: TEXT NULL 
+  - object_repr: varchar(200) NOT NULL 
+  - action_flag: smallint unsigned NOT NULL 
+  - change_message: TEXT NOT NULL 
+  - content_type_id: INTEGER NULL 
+  - user_id: INTEGER NOT NULL 
+  - action_time: datetime NOT NULL 
+----------------------------------------
+Table: django_content_type
+  - id: INTEGER NOT NULL (Primary Key)
+  - app_label: varchar(100) NOT NULL 
+  - model: varchar(100) NOT NULL 
+----------------------------------------
+Table: auth_permission
+  - id: INTEGER NOT NULL (Primary Key)
+  - content_type_id: INTEGER NOT NULL 
+  - codename: varchar(100) NOT NULL 
+  - name: varchar(255) NOT NULL 
+----------------------------------------
+Table: auth_group
+  - id: INTEGER NOT NULL (Primary Key)
+  - name: varchar(150) NOT NULL 
+----------------------------------------
+Table: auth_user
+  - id: INTEGER NOT NULL (Primary Key)
+  - password: varchar(128) NOT NULL 
+  - last_login: datetime NULL 
+  - is_superuser: bool NOT NULL 
+  - username: varchar(150) NOT NULL 
+  - last_name: varchar(150) NOT NULL 
+  - email: varchar(254) NOT NULL 
+  - is_staff: bool NOT NULL 
+  - is_active: bool NOT NULL 
+  - date_joined: datetime NOT NULL 
+  - first_name: varchar(150) NOT NULL 
+----------------------------------------
+Table: django_session
+  - session_key: varchar(40) NOT NULL (Primary Key)
+  - session_data: TEXT NOT NULL 
+  - expire_date: datetime NOT NULL 
+----------------------------------------
+Table: principal_curso
+  - id: INTEGER NOT NULL (Primary Key)
+  - titulo: varchar(200) NOT NULL 
+  - descripcion: TEXT NOT NULL 
+  - icono: varchar(50) NOT NULL 
+  - orden: INTEGER NOT NULL 
+  - puntos: INTEGER NOT NULL 
+  - video: varchar(100) NULL 
+----------------------------------------
+Table: principal_alertaseguridad
+  - id: INTEGER NOT NULL (Primary Key)
+  - titulo: varchar(200) NOT NULL 
+  - descripcion: TEXT NOT NULL 
+  - nivel: varchar(10) NOT NULL 
+  - fecha: datetime NOT NULL 
+----------------------------------------
+Table: principal_pregunta
+  - id: INTEGER NOT NULL (Primary Key)
+  - texto: TEXT NOT NULL 
+  - orden: INTEGER NOT NULL 
+  - curso_id: bigint NOT NULL 
+----------------------------------------
+Table: principal_opcion
+  - id: INTEGER NOT NULL (Primary Key)
+  - texto: varchar(255) NOT NULL 
+  - es_correcta: bool NOT NULL 
+  - pregunta_id: bigint NOT NULL 
+----------------------------------------
+Table: principal_materialcurso
+  - id: INTEGER NOT NULL (Primary Key)
+  - nombre: varchar(200) NOT NULL 
+  - archivo: varchar(100) NOT NULL 
+  - curso_id: bigint NOT NULL 
+----------------------------------------
+Table: principal_contenidocurso
+  - id: INTEGER NOT NULL (Primary Key)
+  - titulo: varchar(200) NOT NULL 
+  - texto: TEXT NOT NULL 
+  - orden: INTEGER NOT NULL 
+  - curso_id: bigint NOT NULL 
+  - imagen: varchar(100) NULL 
+----------------------------------------
+Table: principal_progresocurso
+  - id: INTEGER NOT NULL (Primary Key)
+  - estado: varchar(20) NOT NULL 
+  - porcentaje: INTEGER NOT NULL 
+  - fecha_completado: datetime NULL 
+  - curso_id: bigint NOT NULL 
+  - usuario_id: INTEGER NOT NULL 
+  - ultima_pagina: INTEGER NOT NULL 
+----------------------------------------
+Table: principal_simulacion
+  - id: INTEGER NOT NULL (Primary Key)
+  - titulo: varchar(200) NOT NULL 
+  - descripcion: TEXT NOT NULL 
+  - icono: varchar(50) NOT NULL 
+  - puntos: INTEGER NOT NULL 
+----------------------------------------
+Table: principal_desafiosimulacion
+  - id: INTEGER NOT NULL (Primary Key)
+  - imagen: varchar(100) NOT NULL 
+  - texto_complementario: TEXT NOT NULL 
+  - es_peligro: bool NOT NULL 
+  - explicacion: TEXT NOT NULL 
+  - simulacion_id: bigint NOT NULL 
+----------------------------------------
+Table: principal_progresosimulacion
+  - id: INTEGER NOT NULL (Primary Key)
+  - completado: bool NOT NULL 
+  - puntaje: INTEGER NOT NULL 
+  - fecha: datetime NOT NULL 
+  - usuario_id: INTEGER NOT NULL 
+  - simulacion_id: bigint NOT NULL 
+----------------------------------------
+Table: principal_perfil
+  - id: INTEGER NOT NULL (Primary Key)
+  - empresa_id: INTEGER NULL 
+  - usuario_id: INTEGER NOT NULL 
+  - curp: varchar(18) NULL 
+  - nombre_empresa: varchar(200) NULL 
+  - notas: TEXT NULL 
+  - telefono: varchar(20) NULL 
+  - rfc: varchar(13) NULL 
+----------------------------------------

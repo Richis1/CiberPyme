@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Dashboard | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container employee-container">
+    <div class="user-profile-header animate__animated animate__fadeIn">
+        <div class="profile-avatar"><i class="bi bi-person-fill"></i></div>
+        <div>
+            <span class="badge bg-success mb-2">Empleado Activo</span>
+            <h1 class="text-gradient fw-bold mb-2">{{ user.first_name|default:user.username }}</h1>
+            <p class="text-muted mb-0">
+                <i class="bi bi-building me-2"></i>
+                {{ user.perfil.empresa.first_name|default:"Cuenta Personal" }}
+            </p>
+        </div>
+        <div class="ms-auto d-none d-md-block text-end">
+            <div class="stat-mini-card">
+                <p class="text-muted small mb-0">Nivel de Seguridad</p>
+                <h4 class="fw-bold text-accent mb-0">Nivel {{ nivel_seguridad|default:"1" }} / 10</h4>
+            </div>
+            <div class="stat-mini-card mt-2">
+                <p class="text-muted small mb-0">Puntos Obtenidos</p>
+                <h4 class="fw-bold text-success mb-0">{{ mis_puntos }} pts</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="section-title d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0">Mi Ruta de Aprendizaje</h3>
+                <span class="text-muted small">Próximo objetivo: Ransomware Pro</span>
+            </div>
+            <div class="learning-path">
+                {% for progreso in progresos %}
+                <div class="path-step {% if progreso.estado == 'completado' %}completed{% elif progreso.estado == 'en_curso' %}active{% endif %} animate__animated animate__fadeInLeft"
+                    style="animation-delay: 0.2s;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5
+                                class="fw-bold mb-1 {% if progreso.estado == 'completado' %}text-success{% elif progreso.estado == 'bloqueado' %}text-muted{% endif %}">
+                                {% if progreso.estado == 'completado' %}
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                {% endif %}
+                                {{ progreso.curso.titulo }}
+                            </h5>
+                            <p class="text-muted small mb-0">
+                                {% if progreso.estado == 'completado' %}
+                                Completado el {{ progreso.fecha_completado|date:"d/m/Y"|default:"Recientemente" }}
+                                {% elif progreso.estado == 'en_curso' %}
+                                En curso - {{ progreso.porcentaje }}% completado
+                                {% else %}
+                                No iniciado - Requerido por la empresa
+                                {% endif %}
+                            </p>
+                            {% if progreso.estado == 'en_curso' %}
+                            <div class="progress mt-3" style="height: 6px; width: 200px; background: var(--bg-input);">
+                                <div class="progress-bar bg-accent" style="width: {{ progreso.porcentaje }}%;"></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if progreso.estado == 'completado' %}
+                        <a href="{% url 'ver_curso' progreso.curso.id %}" class="btn btn-sm btn-outline-success">Revisar
+                            <i class="bi bi-check-all"></i></a>
+                        {% elif progreso.estado == 'en_curso' or progreso.estado == 'disponible' %}
+                        <a href="{% url 'ver_curso' progreso.curso.id %}" class="btn btn-sm btn-custom">Continuar <i
+                                class="bi bi-play-fill"></i></a>
+                        {% else %}
+                        <i class="bi bi-lock-fill text-muted"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No hay cursos asignados actualmente.</p>
+                {% endfor %}
+            </div>
+            <div class="mt-5">
+                <h3 class="fw-bold mb-4">Mis Logros</h3>
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card badge-card unlocked"><i class="bi bi-patch-check-fill badge-icon"></i>
+                            <h6 class="fw-bold mb-0">Primer Paso</h6>
+                            <p class="text-muted small">Cursos 101</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card badge-card unlocked"><i class="bi bi-shield-shaded badge-icon"></i>
+                            <h6 class="fw-bold mb-0">Guardián</h6>
+                            <p class="text-muted small">Sin phishing</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card badge-card"><i class="bi bi-trophy-fill badge-icon"></i>
+                            <h6 class="fw-bold mb-0">Maestro</h6>
+                            <p class="text-muted small">Top 10%</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card badge-card"><i class="bi bi-lightning-charge-fill badge-icon"></i>
+                            <h6 class="fw-bold mb-0">Rápido</h6>
+                            <p class="text-muted small">3 cursos/semana</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- Alertas de Seguridad Carousel -->
+            <div class="glass-card p-4 mb-4 animate__animated animate__fadeInRight">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill text-danger"></i> Alertas de Seguridad
+                </h5>
+                {% if alertas %}
+                <div id="alertsCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for alerta in alertas %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <div class="p-3 rounded mb-2 alert-level-{{ alerta.nivel }}">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span
+                                        class="badge {% if alerta.nivel == 'alta' %}bg-danger{% elif alerta.nivel == 'media' %}bg-warning text-dark{% else %}bg-info{% endif %} px-2 py-1"
+                                        style="font-size: 0.7rem;">
+                                        {{ alerta.get_nivel_display }}
+                                    </span>
+                                    <small class="text-muted" style="font-size: 0.65rem;">{{ alerta.fecha|date:"d/m/Y"
+                                        }}</small>
+                                </div>
+                                <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">{{ alerta.titulo }}</h6>
+                                <p class="text-muted small mb-0" style="font-size: 0.75rem; line-height: 1.3;">{{
+                                    alerta.descripcion }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if alertas|length > 1 %}
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <button class="btn btn-sm p-0 text-muted" type="button" data-bs-target="#alertsCarousel"
+                            data-bs-slide="prev" style="font-size: 0.8rem;">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-sm p-0 text-muted" type="button" data-bs-target="#alertsCarousel"
+                            data-bs-slide="next" style="font-size: 0.8rem;">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted small mb-0">No hay alertas activas en este momento.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="glass-card p-4 mb-4 animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
+                <h5 class="fw-bold mb-3">Simulaciones Recientes</h5>
+                <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded"
+                    style="background: rgba(25, 135, 84, 0.1);">
+                    <i class="bi bi-shield-check text-success fs-3"></i>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Prueba Superada</h6>
+                        <p class="text-muted small mb-0">Correo de Phishing Bancario detectado.</p>
+                    </div>
+                </div>
+                <div class="p-3 rounded border border-dashed text-center">
+                    <p class="text-muted mb-2 small">¿Listo para una prueba sorpresa?</p>
+                    <button class="btn btn-outline-accent btn-sm w-100">Configurar Alertas</button>
+                </div>
+            </div>
+            <div class="glass-card p-4 animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
+                <h5 class="fw-bold mb-3">Ranking de Empresa</h5>
+                <ol class="list-group list-group-flush" style="background: transparent;">
+                    {% for r in ranking %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0"
+                        style="background: transparent; color: {% if r.is_me %}var(--accent); font-weight: bold;{% else %}var(--text);{% endif %}">
+                        <span class="small">{{ forloop.counter }}. {{ r.empleado.first_name|default:r.empleado.username
+                            }}{% if r.is_me %} (Tú){% endif %}</span>
+                        <span
+                            class="badge {% if forloop.counter == 1 %}bg-warning text-dark{% elif r.is_me %}bg-accent{% else %}bg-secondary{% endif %} rounded-pill">{{
+                            r.puntos }} pts</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0"
+                        style="background: transparent;">
+                        <span class="small text-muted">Aún no hay puntos registrados.</span>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if simulacion %}Editar{% else %}Nueva{% endif %} Simulación | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="form-header animate__animated animate__fadeInDown">
+        <div class="d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="text-gradient fw-bold">
+                    {% if simulacion %}Editar{% else %}Nueva{% endif %} Simulación
+                </h1>
+                <p class="text-muted">Configura los detalles y los desafíos por imágenes</p>
+            </div>
+            <a href="{% url 'gestionar_simulaciones' %}" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                Cancelar
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="mainSimForm">
+        {% csrf_token %}
+        <ul class="nav nav-tabs" id="simTabs" role="tablist">
+            <li class="nav-item">
+                <button type="button" class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general-pane">
+                    General
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" id="desafios-tab" data-bs-toggle="tab" data-bs-target="#desafios-pane">
+                    Desafíos Interactivos ({{ desafios|length }})
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content glass-card p-4 border-top-0 rounded-bottom-4 shadow">
+            
+            <!-- Pane: General -->
+            <div class="tab-pane fade show active" id="general-pane">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Título de la Simulación</label>
+                            <input type="text" name="titulo" class="form-control" required 
+                                value="{{ simulacion.titulo }}" placeholder="Ej: Detección de Phishing Corporativo">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="4" required>{{ simulacion.descripcion }}</textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Puntos (XP)</label>
+                            <input type="number" name="puntos" class="form-control" required value="{{ simulacion.puntos|default:50 }}">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Icono Principal</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-input text-accent" id="selectedIconPreview">
+                                    <i class="bi {{ simulacion.icono|default:'bi-shield-shaded' }}"></i>
+                                </span>
+                                <input type="text" name="icono" id="iconoInput" class="form-control" 
+                                    value="{{ simulacion.icono|default:'bi-shield-shaded' }}" readonly>
+                                <button type="button" class="btn btn-outline-accent" data-bs-toggle="modal" data-bs-target="#iconPickerModal">
+                                    Cambiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pane: Desafíos -->
+            <div class="tab-pane fade" id="desafios-pane">
+                <div id="desafios-list">
+                    {% for d in desafios %}
+                    <div class="dynamic-form-item animate__animated animate__fadeInUp desafío-item" id="desafio-{{ forloop.counter0 }}">
+                        <button type="button" class="btn-remove" onclick="removeDesafio({{ forloop.counter0 }})">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <input type="hidden" name="desafio_id[]" value="{{ d.id }}">
+                        
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">Imagen del Escenario</label>
+                                <div class="mb-2">
+                                    {% if d.imagen %}
+                                        <img src="{{ d.imagen.url }}" class="img-preview mb-2 d-block">
+                                    {% endif %}
+                                    <input type="file" name="desafio_imagen_{{ forloop.counter0 }}" class="form-control" accept="image/*">
+                                </div>
+                                <div class="mt-4">
+                                    <label class="form-label text-muted small fw-bold">¿Es Amenaza?</label>
+                                    <input type="checkbox" name="desafio_es_peligro_{{ forloop.counter0 }}" 
+                                           id="check-{{ forloop.counter0 }}" class="check-threat" 
+                                           {% if d.es_peligro %}checked{% endif %}>
+                                    <label for="check-{{ forloop.counter0 }}" class="threat-toggle">
+                                        <span class="label-text">{% if d.es_peligro %}SI, ES AMENAZA{% else %}NO, ES SEGURO{% endif %}</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold">Contexto / Texto Complementario</label>
+                                    <textarea name="desafio_contexto[]" class="form-control" rows="2" placeholder="Ej: Has recibido un email de 'soporte-ti@empresa.com'...">{{ d.texto_complementario }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="form-label text-muted small fw-bold">Explicación (Feedback)</label>
+                                    <textarea name="desafio_explicacion[]" class="form-control" rows="3" required placeholder="Explica por qué es o no una amenaza...">{{ d.explicacion }}</textarea>
+                                </div>
+                                <input type="hidden" name="desafio_form_index[]" value="{{ forloop.counter0 }}">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="button" class="btn btn-outline-accent w-100 py-3 mt-2 rounded-4 border-dashed" onclick="addDesafio()">
+                    <i class="bi bi-plus-circle me-2"></i> Añadir Desafío por Imagen
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-5">
+            <button type="submit" class="btn btn-custom flex-grow-1 py-3 px-5 rounded-pill shadow-lg h5">
+                <i class="bi bi-save me-2"></i> Guardar Simulación
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Picker -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-accent">
+            <div class="modal-header border-border">
+                <h5 class="modal-title">Elegir Icono</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="icon-grid" id="iconGrid"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let desafioCount = {{ desafios|length }};
+    const icons = [
+        'bi-shield-shaded', 'bi-shield-check', 'bi-shield-lock', 'bi-key', 'bi-unlock', 'bi-safe', 'bi-fingerprint', 
+        'bi-laptop', 'bi-phone', 'bi-wifi', 'bi-server', 'bi-database', 'bi-cloud-check',
+        'bi-bug', 'bi-exclamation-triangle', 'bi-eye', 'bi-gear', 'bi-terminal', 'bi-patch-check', 'bi-radar'
+    ];
+
+    function initIconPicker() {
+        const grid = document.getElementById('iconGrid');
+        icons.forEach(ico => {
+            const div = document.createElement('div');
+            div.className = `icon-item ${ico === '{{ simulacion.icono|default:"bi-shield-shaded" }}' ? 'selected' : ''}`;
+            div.innerHTML = `<i class="bi ${ico}"></i>`;
+            div.onclick = () => {
+                document.querySelectorAll('.icon-item').forEach(el=>el.classList.remove('selected'));
+                div.classList.add('selected');
+                document.getElementById('iconoInput').value = ico;
+                document.getElementById('selectedIconPreview').innerHTML = `<i class="bi ${ico}"></i>`;
+                bootstrap.Modal.getInstance(document.getElementById('iconPickerModal')).hide();
+            };
+            grid.appendChild(div);
+        });
+    }
+
+    function addDesafio() {
+        const list = document.getElementById('desafios-list');
+        const idx = desafioCount++;
+        const html = `
+            <div class="dynamic-form-item animate__animated animate__fadeInUp desafío-item" id="desafio-${idx}">
+                <button type="button" class="btn-remove" onclick="removeDesafio(${idx})">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <input type="hidden" name="desafio_id[]" value="">
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-bold">Imagen del Escenario</label>
+                        <input type="file" name="desafio_imagen_${idx}" class="form-control" accept="image/*" required>
+                        <div class="mt-4">
+                            <label class="form-label text-muted small fw-bold">¿Es Amenaza?</label>
+                            <input type="checkbox" name="desafio_es_peligro_${idx}" id="check-${idx}" class="check-threat">
+                            <label for="check-${idx}" class="threat-toggle safe">
+                                <span class="label-text">NO, ES SEGURO</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Contexto / Texto Complementario</label>
+                            <textarea name="desafio_contexto[]" class="form-control" rows="2" placeholder="Ej: Un email sospechoso..."></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label text-muted small fw-bold">Explicación (Feedback)</label>
+                            <textarea name="desafio_explicacion[]" class="form-control" rows="3" required placeholder="Explica por qué..."></textarea>
+                        </div>
+                        <input type="hidden" name="desafio_form_index[]" value="${idx}">
+                    </div>
+                </div>
+            </div>
+        `;
+        list.insertAdjacentHTML('beforeend', html);
+        
+        // Add event listener to new toggle
+        const check = document.getElementById(`check-${idx}`);
+        const label = check.nextElementSibling;
+        check.addEventListener('change', () => {
+            if(check.checked) {
+                label.innerText = "SI, ES AMENAZA";
+                label.classList.remove('safe');
+                label.classList.add('threat');
+            } else {
+                label.innerText = "NO, ES SEGURO";
+                label.classList.remove('threat');
+                label.classList.add('safe');
+            }
+        });
+    }
+
+    function removeDesafio(idx) {
+        document.getElementById(`desafio-${idx}`).remove();
+    }
+
+    // Handle existing toggles
+    document.addEventListener('change', (e) => {
+        if(e.target.classList.contains('check-threat')) {
+            const label = e.target.nextElementSibling;
+            if(e.target.checked) {
+                label.innerText = "SI, ES AMENAZA";
+                label.classList.remove('safe');
+                label.classList.add('threat');
+            } else {
+                label.innerText = "NO, ES SEGURO";
+                label.classList.remove('threat');
+                label.classList.add('safe');
+            }
+        }
+    });
+
+    // Función para previsualizar imágenes seleccionadas
+    document.addEventListener('change', (e) => {
+        if(e.target.type === 'file' && e.target.name.startsWith('desafio_imagen_')) {
+            const reader = new FileReader();
+            const file = e.target.files[0];
+            const parent = e.target.closest('.mb-2') || e.target.parentElement;
+            let img = parent.querySelector('.img-preview');
+            
+            if(!img) {
+                img = document.createElement('img');
+                img.className = 'img-preview mb-2 d-block';
+                parent.insertBefore(img, e.target);
+            }
+            
+            reader.onload = (event) => {
+                img.src = event.target.result;
+            };
+            
+            if(file) reader.readAsDataURL(file);
+        }
+    });
+
+    window.onload = initIconPicker;
+</script>
+{% endblock %}

@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Curso | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container edit-container">
+    <div class="form-header animate__animated animate__fadeInDown">
+        <h1 class="text-gradient fw-bold">Configuración del Curso</h1>
+        <p class="text-muted small">Personaliza el contenido, imágenes y cuestionario.</p>
+    </div>
+
+    <ul class="nav nav-tabs nav-tabs-custom" id="courseEditTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general"
+                type="button" role="tab">General</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="slides-tab" data-bs-toggle="tab" data-bs-target="#slides" type="button"
+                role="tab">Contenido (Carrusel)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="materials-tab" data-bs-toggle="tab" data-bs-target="#materials" type="button"
+                role="tab">Video del Curso</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="quiz-tab" data-bs-toggle="tab" data-bs-target="#quiz" type="button"
+                role="tab">Cuestionario</button>
+        </li>
+    </ul>
+
+    <form method="post" enctype="multipart/form-data" id="mainCourseForm">
+        {% csrf_token %}
+        <div class="tab-content" id="courseEditTabsContent">
+            <!-- PESTAÑA GENERAL -->
+            <div class="tab-pane fade show active" id="general" role="tabpanel">
+                <div class="glass-card p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Título del Curso</label>
+                        <input type="text" name="titulo" class="form-control" required value="{{ curso.titulo }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Descripción Corta</label>
+                        <textarea name="descripcion" class="form-control" rows="3"
+                            required>{{ curso.descripcion }}</textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">Icono del Curso</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-input text-accent" id="selectedIconPreview">
+                                    <i class="bi {{ curso.icono|default:'bi-journal-text' }}"></i>
+                                </span>
+                                <input type="text" name="icono" id="iconoInput" class="form-control" required
+                                    value="{{ curso.icono|default:'bi-journal-text' }}" readonly>
+                                <button type="button" class="btn btn-outline-accent" data-bs-toggle="modal"
+                                    data-bs-target="#iconPickerModal">
+                                    Seleccionar Icono
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label text-muted small fw-bold">Orden</label>
+                            <input type="number" name="orden" class="form-control" required value="{{ curso.orden }}">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label text-muted small fw-bold">Puntos</label>
+                            <input type="number" name="puntos" class="form-control" required
+                                value="{{ curso.puntos|default:100 }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Video Principal del Módulo</label>
+                        <input type="file" name="video" class="form-control" accept="video/*">
+                        {% if curso.video %}
+                        <div class="mt-2 p-3 bg-dark rounded-3 border">
+                            <p class="small text-accent mb-2"><i class="bi bi-play-circle me-1"></i> Video actual:</p>
+                            <video width="100%" controls style="max-height: 200px; border-radius: 8px;">
+                                <source src="{{ curso.video.url }}" type="video/mp4">
+                                Tu navegador no soporta el video.
+                            </video>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA SLIDES -->
+            <div class="tab-pane fade" id="slides" role="tabpanel">
+                <div id="slides-container">
+                    {% for slide in contenidos %}
+                    <div class="dynamic-form-item animate__animated animate__fadeIn">
+                        <input type="hidden" name="slide_id[]" value="{{ slide.id }}">
+                        <span class="btn-remove" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></span>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Título de Diapositiva</label>
+                            <input type="text" name="slide_titulo[]" class="form-control" value="{{ slide.titulo }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Texto / Descripción</label>
+                            <textarea name="slide_texto[]" class="form-control" rows="2">{{ slide.texto }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Imagen</label>
+                            <input type="hidden" name="slide_form_index[]" value="{{ forloop.counter0 }}">
+                            <input type="file" name="slide_imagen_{{ forloop.counter0 }}" class="form-control">
+                            {% if slide.imagen %}
+                            <img src="{{ slide.imagen.url }}" class="img-preview">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-accent w-100 py-3 mt-2" onclick="addSlide()">
+                    <i class="bi bi-plus-circle me-2"></i> Agregar Diapositiva
+                </button>
+            </div>
+
+            <!-- PESTAÑA MATERIALES -->
+            <div class="tab-pane fade" id="materials" role="tabpanel">
+                <div id="materials-container">
+                    {% for mat in materiales %}
+                    <div class="dynamic-form-item animate__animated animate__fadeIn">
+                        <input type="hidden" name="material_id[]" value="{{ mat.id }}">
+                        <span class="btn-remove" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></span>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Nombre del Video</label>
+                            <input type="text" name="material_nombre_existente[]" class="form-control"
+                                value="{{ mat.nombre }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <a href="{{ mat.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-play-circle me-1"></i> Ver Video Actual
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-info w-100 py-3 mt-2" onclick="addMaterial()">
+                    <i class="bi bi-camera-video me-2"></i> Subir Video del Curso
+                </button>
+                <p class="text-muted small mt-3 text-center"><i class="bi bi-info-circle me-1"></i> Los videos
+                    existentes no se
+                    pueden editar, solo eliminar y volver a subir.</p>
+            </div>
+
+            <!-- PESTAÑA QUIZ -->
+            <div class="tab-pane fade" id="quiz" role="tabpanel">
+                <div id="quiz-container">
+                    {% for p in preguntas %}
+                    <div class="dynamic-form-item animate__animated animate__fadeIn question-item"
+                        data-p-index="{{ forloop.counter0 }}">
+                        <span class="btn-remove" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></span>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Pregunta #{{ forloop.counter }}</label>
+                            <input type="hidden" name="question_form_index[]" value="{{ forloop.counter0 }}">
+                            <input type="text" name="pregunta_texto[]" class="form-control" value="{{ p.texto }}"
+                                required>
+                        </div>
+                        <div class="options-container ms-4">
+                            <label class="text-muted small fw-bold mb-2">Opciones <span class="text-accent">(Marca todas
+                                    las correctas)</span></label>
+                            <div class="options-list">
+                                {% for opt in p.opciones.all %}
+                                <div class="input-group mb-2 option-row">
+                                    <div class="input-group-text bg-input">
+                                        <input type="checkbox"
+                                            name="opcion_correcta_{{ forloop.parentloop.counter0 }}[]"
+                                            value="{{ forloop.counter0 }}" {% if opt.es_correcta %}checked{% endif %}
+                                            class="option-checkbox">
+                                    </div>
+                                    <input type="text" name="opcion_texto_{{ forloop.parentloop.counter0 }}[]"
+                                        class="form-control" value="{{ opt.texto }}" placeholder="Opción">
+                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                        onclick="removeOption(this)">
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-accent mt-2 p-0 text-decoration-none"
+                            onclick="addOption(this)">
+                            <i class="bi bi-plus-circle me-1"></i> Agregar Opción
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-warning w-100 py-3 mt-2" onclick="addQuestion()">
+                    <i class="bi bi-question-circle me-2"></i> Agregar Pregunta
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-5">
+            <a href="{% url 'gestionar_cursos' %}" class="btn btn-outline-secondary px-5 py-3 rounded-pill">Cancelar</a>
+            <button type="submit" class="btn btn-custom px-5 py-3 rounded-pill flex-grow-1"
+                onclick="reindexAllOptions()">
+                <i class="bi bi-save me-2"></i> Guardar Cambios del Curso
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Picker de Iconos -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-card border-accent">
+            <div class="modal-header border-border">
+                <h5 class="modal-title fw-bold">Seleccionar Icono</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="icon-grid" id="iconGrid">
+                    <!-- Los iconos se cargarán aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let slideCount = {{ contenidos.count|default:0 }};
+    let questionCount = {{ preguntas.count|default:0 }};
+    let materialCount = {{ materiales.count|default:0 }};
+
+    // --- Icon Picker Logic ---
+    const icons = [
+        'bi-shield-check', 'bi-shield-lock', 'bi-key', 'bi-unlock', 'bi-safe', 'bi-fingerprint',
+        'bi-laptop', 'bi-phone', 'bi-wifi', 'bi-server', 'bi-database', 'bi-cloud-check',
+        'bi-journal-text', 'bi-book', 'bi-mortarboard', 'bi-pencil', 'bi-clipboard-check',
+        'bi-bug', 'bi-exclamation-triangle', 'bi-eye', 'bi-gear', 'bi-info-circle', 'bi-person-badge',
+        'bi-globe', 'bi-lock', 'bi-unlocked', 'bi-terminal', 'bi-patch-check', 'bi-radar'
+    ];
+
+    function initIconPicker() {
+        const grid = document.getElementById('iconGrid');
+        icons.forEach(ico => {
+            const div = document.createElement('div');
+            div.className = `icon-item ${ico === '{{ curso.icono }}' ? 'selected' : ''}`;
+            div.innerHTML = `<i class="bi ${ico}"></i> <small class="mt-1">${ico.replace('bi-', '')}</small>`;
+            div.onclick = () => selectIcon(ico, div);
+            grid.appendChild(div);
+        });
+    }
+
+    function selectIcon(ico, element) {
+        document.querySelectorAll('.icon-item').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        document.getElementById('iconoInput').value = ico;
+        document.getElementById('selectedIconPreview').innerHTML = `<i class="bi ${ico}"></i>`;
+        const modal = bootstrap.Modal.getInstance(document.getElementById('iconPickerModal'));
+        modal.hide();
+    }
+
+    // --- Functionalities ---
+
+    function addMaterial() {
+        const container = document.getElementById('materials-container');
+        const div = document.createElement('div');
+        div.className = 'dynamic-form-item animate__animated animate__fadeInUp';
+        div.innerHTML = `
+            <span class="btn-remove" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></span>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Nombre del Video (ej: Tutorial de Seguridad)</label>
+                <input type="text" name="material_nombre_nuevo[]" class="form-control" required placeholder="Nombre del video">
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Archivo de Video</label>
+                <input type="hidden" name="material_form_index[]" value="${materialCount}">
+                <input type="file" name="material_archivo_${materialCount}" class="form-control" accept="video/*" required>
+            </div>
+        `;
+        container.appendChild(div);
+        materialCount++;
+    }
+
+    function addSlide() {
+        const container = document.getElementById('slides-container');
+        const div = document.createElement('div');
+        div.className = 'dynamic-form-item animate__animated animate__fadeInUp';
+        div.innerHTML = `
+            <input type="hidden" name="slide_id[]" value="">
+            <span class="btn-remove" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></span>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Título de Diapositiva</label>
+                <input type="text" name="slide_titulo[]" class="form-control" placeholder="Ej: Introducción">
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Texto / Descripción</label>
+                <textarea name="slide_texto[]" class="form-control" rows="2" placeholder="Información que aparecerá en el carrusel..."></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Imagen</label>
+                <input type="hidden" name="slide_form_index[]" value="${slideCount}">
+                <input type="file" name="slide_imagen_${slideCount}" class="form-control">
+            </div>
+        `;
+        container.appendChild(div);
+        slideCount++;
+    }
+
+    function addQuestion() {
+        const container = document.getElementById('quiz-container');
+        const div = document.createElement('div');
+        div.className = 'dynamic-form-item animate__animated animate__fadeInUp question-item';
+        div.setAttribute('data-p-index', questionCount);
+        div.innerHTML = `
+            <span class="btn-remove" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></span>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Nueva Pregunta</label>
+                <input type="hidden" name="question_form_index[]" value="${questionCount}">
+                <input type="text" name="pregunta_texto[]" class="form-control" placeholder="¿Cuál es la respuesta correcta?" required>
+            </div>
+            <div class="options-container ms-4">
+                <label class="text-muted small fw-bold mb-2">Opciones <span class="text-accent">(Marca todas las correctas)</span></label>
+                <div class="options-list">
+                    <div class="input-group mb-2 option-row">
+                        <div class="input-group-text bg-input text-accent">
+                            <input type="checkbox" name="opcion_correcta_${questionCount}[]" value="0" class="option-checkbox">
+                        </div>
+                        <input type="text" name="opcion_texto_${questionCount}[]" class="form-control" placeholder="Opción 1">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeOption(this)">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-link text-accent mt-2 p-0 text-decoration-none" onclick="addOption(this)">
+                <i class="bi bi-plus-circle me-1"></i> Agregar Opción
+            </button>
+        `;
+        container.appendChild(div);
+        questionCount++;
+    }
+
+    function addOption(btn) {
+        const container = btn.previousElementSibling.querySelector('.options-list');
+        const pIndex = btn.parentElement.getAttribute('data-p-index');
+        const optRows = container.querySelectorAll('.option-row');
+        const nextIdx = optRows.length;
+
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 option-row animate__animated animate__fadeInLeft';
+        div.innerHTML = `
+            <div class="input-group-text bg-input text-accent">
+                <input type="checkbox" name="opcion_correcta_${pIndex}[]" value="${nextIdx}" class="option-checkbox">
+            </div>
+            <input type="text" name="opcion_texto_${pIndex}[]" class="form-control" placeholder="Nueva Opción">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeOption(this)">
+                <i class="bi bi-dash"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeOption(btn) {
+        btn.closest('.option-row').remove();
+    }
+
+    // --- Critical: Reindex everything before submitting ---
+    function reindexAllOptions() {
+        const questions = document.querySelectorAll('.question-item');
+        questions.forEach((q, qIdx) => {
+            // Reindex the question hidden field
+            const qHidden = q.querySelector('input[name="question_form_index[]"]');
+            qHidden.value = qIdx;
+
+            // Reindex the texts and checkboxes
+            const options = q.querySelectorAll('.option-row');
+            options.forEach((opt, oIdx) => {
+                const check = opt.querySelector('.option-checkbox');
+                const text = opt.querySelector('input[type="text"]');
+
+                check.name = `opcion_correcta_${qIdx}[]`;
+                check.value = oIdx;
+                text.name = `opcion_texto_${qIdx}[]`;
+            });
+
+            // Reindex question_texto just in case
+            // (but it doesn't have an index in name, so it's fine)
+        });
+    }
+
+    // Iniciar
+    window.onload = initIconPicker;
+</script>
+{% endblock %}

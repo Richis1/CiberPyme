@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static auth_extras %}
+
+{% block title %}Módulos Educativos | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="courses-header animate__animated animate__fadeInDown">
+        <h1 class="text-gradient">Cursos Disponibles</h1>
+        <p class="text-muted">Capacitación especializada en ciberseguridad.</p>
+    </div>
+
+    <div class="row g-4 modules-grid">
+        {% for curso in cursos %}
+        <div class="col-lg-4 col-md-6 animate__animated animate__fadeInUp"
+            style="animation-delay: {{ forloop.counter0|add:" 1" }}00ms;">
+            <div class="glass-card module-card">
+                <div class="module-icon">
+                    <i class="bi {{ curso.icono }}"></i>
+                </div>
+                <h3>{{ curso.titulo }}</h3>
+                <p>{{ curso.descripcion }}</p>
+                {% if not request.user|has_group:"Empresas" %}
+                <a href="{% url 'ver_curso' curso.id %}" class="btn btn-module">Ver Módulo</a>
+                {% else %}
+                <a href="{% url 'ver_curso' curso.id %}" class="btn btn-outline-info rounded-pill px-4">Vista Previa</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <h3 class="text-muted">No hay cursos publicados todavía.</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

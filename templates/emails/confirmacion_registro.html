@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .email-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #007bff 0%, #00a2ff 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="card">
+            <div class="header">
+                <div class="logo-text">CyberPyme Yucatán</div>
+            </div>
+            <h2>¡Hola, {{ nombre_contacto }}!</h2>
+            <p>Gracias por registrar a <strong>{{ nombre_empresa }}</strong> en nuestra plataforma de ciberseguridad.</p>
+            <p>Para activar tu cuenta corporativa y acceder a todas nuestras herramientas y simulaciones, por favor haz clic en el siguiente botón:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ activacion_url }}" class="button">Confirmar mi Cuenta</a>
+            </div>
+            
+            <p>Si el botón no funciona, puedes copiar y pegar el siguiente enlace en tu navegador:</p>
+            <p style="word-break: break-all; color: #007bff;">{{ activacion_url }}</p>
+            
+            <p>Este enlace expirará pronto por razones de seguridad.</p>
+            <p>Si no solicitaste este registro, puedes ignorar este correo.</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 CyberPyme Yucatán. Protegiendo el futuro digital de las PYMES.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Curso | CyberPyme Yucatán{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-header animate__animated animate__fadeInDown">
+        <h1 class="text-gradient fw-bold">Nuevo Curso</h1>
+        <p class="text-muted lead">Ingresa los detalles del nuevo módulo de aprendizaje</p>
+    </div>
+
+    <div class="glass-card form-card animate__animated animate__fadeInUp">
+        <form method="post" class="needs-validation" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="titulo" class="form-label text-muted small fw-bold">Título del Curso</label>
+                <input type="text" name="titulo" id="titulo" class="form-control" required
+                    placeholder="Ej: Introducción a la Ciberseguridad">
+            </div>
+
+            <div class="mb-3">
+                <label for="descripcion" class="form-label text-muted small fw-bold">Descripción Corta</label>
+                <textarea name="descripcion" id="descripcion" class="form-control" rows="3" required
+                    placeholder="Describe brevemente de qué trata el módulo..."></textarea>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6 mb-3">
+                    <label for="orden" class="form-label text-muted small fw-bold">Orden de Aparición</label>
+                    <input type="number" name="orden" id="orden" class="form-control" required min="1"
+                        placeholder="1, 2, 3...">
+                    <div class="form-text text-muted">El curso con orden 1 será el primero disponible.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="puntos" class="form-label text-muted small fw-bold">Puntos Totales</label>
+                    <input type="number" name="puntos" id="puntos" class="form-control" required min="10" step="10"
+                        placeholder="100">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="icono" class="form-label text-muted small fw-bold">Icono del Curso</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-input text-accent" id="selectedIconPreview">
+                        <i class="bi bi-journal-text"></i>
+                    </span>
+                    <input type="text" name="icono" id="iconoInput" class="form-control" required 
+                        value="bi-journal-text" readonly>
+                    <button type="button" class="btn btn-outline-accent" data-bs-toggle="modal" data-bs-target="#iconPickerModal">
+                        Seleccionar
+                    </button>
+                </div>
+                <div class="form-text text-muted">Se mostrará en los paneles de los alumnos.</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="video" class="form-label text-muted small fw-bold">Video del Módulo (Opcional)</label>
+                <input type="file" name="video" id="video" class="form-control" accept="video/*">
+                <div class="form-text text-muted">Sube el video que se mostrará después de las diapositivas.</div>
+            </div>
+
+            <div class="d-flex gap-3 mt-5">
+                <a href="{% url 'gestionar_cursos' %}" class="btn btn-outline-secondary flex-grow-1 py-3 px-4 rounded-pill">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-custom flex-grow-1 py-3 px-4 rounded-pill shadow">
+                    <i class="bi bi-plus-lg me-2"></i> Crear Módulo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Picker de Iconos -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-card border-accent">
+            <div class="modal-header border-border">
+                <h5 class="modal-title fw-bold">Seleccionar Icono</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="icon-grid" id="iconGrid">
+                    <!-- Los iconos se cargarán aquí via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Icon Picker Logic ---
+    const icons = [
+        'bi-shield-check', 'bi-shield-lock', 'bi-key', 'bi-unlock', 'bi-safe', 'bi-fingerprint', 
+        'bi-laptop', 'bi-phone', 'bi-wifi', 'bi-server', 'bi-database', 'bi-cloud-check',
+        'bi-journal-text', 'bi-book', 'bi-mortarboard', 'bi-pencil', 'bi-clipboard-check',
+        'bi-bug', 'bi-exclamation-triangle', 'bi-eye', 'bi-gear', 'bi-info-circle', 'bi-person-badge',
+        'bi-globe', 'bi-lock', 'bi-unlocked', 'bi-terminal', 'bi-patch-check', 'bi-radar'
+    ];
+
+    function initIconPicker() {
+        const grid = document.getElementById('iconGrid');
+        icons.forEach(ico => {
+            const div = document.createElement('div');
+            div.className = `icon-item`;
+            div.innerHTML = `<i class="bi ${ico}"></i> <small class="mt-1">${ico.replace('bi-', '')}</small>`;
+            div.onclick = () => selectIcon(ico, div);
+            grid.appendChild(div);
+        });
+    }
+
+    function selectIcon(ico, element) {
+        document.querySelectorAll('.icon-item').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        document.getElementById('iconoInput').value = ico;
+        document.getElementById('selectedIconPreview').innerHTML = `<i class="bi ${ico}"></i>`;
+        const modal = bootstrap.Modal.getInstance(document.getElementById('iconPickerModal'));
+        modal.hide();
+    }
+
+    window.onload = initIconPicker;
+</script>
+{% endblock %}
