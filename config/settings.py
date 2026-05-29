@@ -34,7 +34,12 @@ allowed_hosts_env = os.environ.get('ALLOWED_HOSTS')
 if allowed_hosts_env:
     ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
 else:
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+    ALLOWED_HOSTS = [
+        '127.0.0.1',
+        'localhost',
+        '0.0.0.0',
+        'ciberpyme-piloto.onrender.com',
+    ]
 
 # CSRF trusted origins for production
 csrf_trusted_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS')
