@@ -160,6 +160,67 @@
         </div>
         {% endif %}
     </div>
+    
+    <!-- Modal de Resultados de Examen -->
+    {% if request.GET.puntuacion %}
+    <div class="modal fade" id="resultModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0 overflow-hidden" style="border-radius: 24px;">
+                {% with score=request.GET.puntuacion|add:"0" %}
+                <div class="modal-header border-0 pb-0 justify-content-center">
+                    <h3 class="modal-title fw-bold text-center mt-3" id="resultModalLabel">
+                        {% if score >= 70 %}
+                        <span class="text-gradient">¡Examen Aprobado! 🎉</span>
+                        {% else %}
+                        <span class="text-danger">Examen Reprobado 🔄</span>
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="modal-body text-center px-4">
+                    <div class="d-flex justify-content-center my-4">
+                        <div class="position-relative" style="width: 150px; height: 150px;">
+                            <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                <!-- Background circle -->
+                                <path class="text-muted" style="opacity: 0.1;" stroke="currentColor" stroke-width="3.5" fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <!-- Foreground circle -->
+                                <path class="{% if score >= 70 %}text-success{% else %}text-danger{% endif %}" stroke="currentColor" stroke-width="3.5" stroke-dasharray="{{ score }}, 100" fill="none" stroke-linecap="round"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                <span class="fs-1 fw-bold">{{ score }}</span>
+                                <span class="text-muted d-block" style="font-size: 0.8rem; margin-top: -5px;">/ 100</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if score >= 70 %}
+                    <p class="lead mb-3 text-success fw-bold">¡Excelente trabajo!</p>
+                    <p class="text-muted mb-4">Has obtenido <strong>{{ score }} puntos</strong> en tu evaluación (mínimo requerido: 70 puntos). Tu diploma de acreditación para el curso <strong>{{ curso.titulo }}</strong> ya está disponible para descargar.</p>
+                    {% else %}
+                    <p class="lead mb-3 text-danger fw-bold">No se alcanzó el puntaje mínimo</p>
+                    <p class="text-muted mb-4">Obtuviste <strong>{{ score }} puntos</strong>. Para acreditar este curso y obtener tu diploma necesitas una puntuación mínima de <strong>70 puntos</strong>. Debes volver a repasar el material e iniciar el curso desde el principio.</p>
+                    {% endif %}
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2">
+                    {% if score >= 70 %}
+                    <a href="{% url 'descargar_diploma' curso.id %}" target="_blank" class="btn btn-custom px-4 py-2 shadow-sm">
+                        <i class="bi bi-award-fill me-2"></i>Descargar Diploma
+                    </a>
+                    <a href="{% url 'empleado_dashboard' %}" class="btn btn-outline-light px-4 py-2">
+                        Ir a mi Progreso
+                    </a>
+                    {% else %}
+                    <button type="button" class="btn btn-custom px-5 py-2 shadow-sm" data-bs-dismiss="modal">
+                        Comenzar de Nuevo <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -345,6 +406,20 @@
             if (savedSlide === totalSlides - 1 || totalSlides <= 1) {
                 unlockVideo();
             }
+        }
+
+        // 3. Mostrar modal de resultados si el query param está presente
+        const modalElement = document.getElementById('resultModal');
+        if (modalElement) {
+            const resultModal = new bootstrap.Modal(modalElement);
+            resultModal.show();
+            
+            // Eliminar query param de la URL al cerrar el modal para no reabrirlo al refrescar
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                const url = new URL(window.location);
+                url.searchParams.delete('puntuacion');
+                window.history.replaceState({}, document.title, url.pathname + url.search);
+            });
         }
     });
 </script>

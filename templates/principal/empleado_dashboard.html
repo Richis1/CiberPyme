@@ -127,12 +127,10 @@
                                         style="font-size: 0.7rem;">
                                         {{ alerta.get_nivel_display }}
                                     </span>
-                                    <small class="text-muted" style="font-size: 0.65rem;">{{ alerta.fecha|date:"d/m/Y"
-                                        }}</small>
+                                    <small class="text-muted" style="font-size: 0.65rem;">{{ alerta.fecha|date:"d/m/Y" }}</small>
                                 </div>
                                 <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">{{ alerta.titulo }}</h6>
-                                <p class="text-muted small mb-0" style="font-size: 0.75rem; line-height: 1.3;">{{
-                                    alerta.descripcion }}</p>
+                                <p class="text-muted small mb-0" style="font-size: 0.75rem; line-height: 1.3;">{{ alerta.descripcion }}</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -178,11 +176,9 @@
                     {% for r in ranking %}
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0"
                         style="background: transparent; color: {% if r.is_me %}var(--accent); font-weight: bold;{% else %}var(--text);{% endif %}">
-                        <span class="small">{{ forloop.counter }}. {{ r.empleado.first_name|default:r.empleado.username
-                            }}{% if r.is_me %} (Tú){% endif %}</span>
+                        <span class="small">{{ forloop.counter }}. {{ r.empleado.first_name|default:r.empleado.username }}{% if r.is_me %} (Tú){% endif %}</span>
                         <span
-                            class="badge {% if forloop.counter == 1 %}bg-warning text-dark{% elif r.is_me %}bg-accent{% else %}bg-secondary{% endif %} rounded-pill">{{
-                            r.puntos }} pts</span>
+                            class="badge {% if forloop.counter == 1 %}bg-warning text-dark{% elif r.is_me %}bg-accent{% else %}bg-secondary{% endif %} rounded-pill">{{ r.puntos }} pts</span>
                     </li>
                     {% empty %}
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0"

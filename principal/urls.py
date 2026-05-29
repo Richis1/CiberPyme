@@ -36,6 +36,7 @@ urlpatterns = [
     path('logout/', views.custom_logout, name='logout'),
     path('registro-empresa/', views.registro_empresa, name='registro_empresa'),
     path('confirmar-registro/<str:uidb64>/<str:token>/', views.confirmar_registro, name='confirmar_registro'),
+    path('confirmar-empleado/<str:uidb64>/<str:token>/', views.confirmar_contrasena_empleado, name='confirmar_contrasena_empleado'),
     
     # API endpoints for JWT Secure Auth
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

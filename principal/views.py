@@ -86,16 +86,34 @@ def descargar_diploma(request, curso_id):
     import datetime
     
     curso = get_object_or_404(Curso, id=curso_id)
-    # Si es staff puede ver cualquier diploma, si no, solo si lo completó
-    if not request.user.is_staff:
-        progreso = get_object_or_404(ProgresoCurso, usuario=request.user, curso=curso)
-        if progreso.estado != 'completado':
-            messages.error(request, 'Aún no has completado este curso para obtener el diploma.')
-            return redirect('cursos')
+    usuario_id = request.GET.get('usuario_id')
+    
+    if usuario_id:
+        target_user = get_object_or_404(User, id=usuario_id)
+        # Validar permisos
+        tiene_permiso = request.user.is_staff
+        if not tiene_permiso and request.user.groups.filter(name='Empresas').exists():
+            try:
+                tiene_permiso = (target_user.perfil.empresa == request.user)
+            except Exception:
+                tiene_permiso = False
+        if not tiene_permiso:
+            tiene_permiso = (request.user == target_user)
+            
+        if not tiene_permiso:
+            messages.error(request, 'No tienes permiso para ver este diploma.')
+            return redirect('home')
+    else:
+        target_user = request.user
+
+    progreso = get_object_or_404(ProgresoCurso, usuario=target_user, curso=curso)
+    if progreso.estado != 'completado' and not request.user.is_staff:
+        messages.error(request, 'El usuario aún no ha completado este curso.')
+        return redirect('home')
     
     context = {
         'curso': curso,
-        'user': request.user,
+        'user': target_user,
         'fecha_hoy': datetime.datetime.now()
     }
     return render(request, 'principal/diploma_formato.html', context)
@@ -118,7 +136,6 @@ def empresa_dashboard(request):
         # Alta de empleado
         username = request.POST.get('username')
         email = request.POST.get('email')
-        password = request.POST.get('password')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         if User.objects.filter(username=username).exists():
@@ -126,7 +143,10 @@ def empresa_dashboard(request):
         elif User.objects.filter(email=email).exists():
             messages.error(request, 'Este correo electrónico ya está registrado.')
         else:
-            user = User.objects.create_user(username, email, password)
+            # Generar contraseña temporal aleatoria
+            temp_password = User.objects.make_random_password()
+            user = User.objects.create_user(username, email, temp_password)
+            user.is_active = False  # Inactivo por defecto hasta confirmar contraseña
             user.first_name = first_name
             user.last_name = last_name
             user.save()
@@ -150,20 +170,22 @@ def empresa_dashboard(request):
                     defaults={'estado': estado, 'porcentaje': 0}
                 )
             
-            # Enviar Correo Electrónico (Formato Premium HTML)
+            # Enviar Correo de Activación (Formato Premium HTML)
             try:
-                login_url = f"{request.scheme}://{request.get_host()}/login/"
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                activacion_url = f"{request.scheme}://{request.get_host()}/confirmar-empleado/{uid}/{token}/"
+                
                 context_email = {
                     'first_name': first_name,
                     'username': username,
-                    'password': password,
-                    'login_url': login_url
+                    'activacion_url': activacion_url
                 }
                 
-                html_message = render_to_string('emails/credenciales.html', context_email)
+                html_message = render_to_string('emails/confirmar_contrasena_empleado.html', context_email)
                 plain_message = strip_tags(html_message)
                 
-                asunto = 'Bienvenido a CyberPyme - Tus Credenciales de Acceso'
+                asunto = 'Confirma tu Cuenta y Establece tu Contraseña - CyberPyme'
                 
                 send_mail(
                     asunto,
@@ -172,11 +194,11 @@ def empresa_dashboard(request):
                     [email],
                     html_message=html_message
                 )
-                messages.success(request, f'Empleado "{first_name}" dado de alta. Se ha enviado un correo con sus credenciales.')
+                messages.success(request, f'Empleado "{first_name}" dado de alta. Se ha enviado un correo de confirmación para establecer su contraseña.')
             except Exception as e:
                 print(f"Error enviando correo: {e}")
-                messages.warning(request, f'Empleado creado, pero hubo un detalle al enviar el correo de notificación.')
-
+                messages.warning(request, f'Empleado creado, pero hubo un detalle al enviar el correo de activación.')
+ 
             return redirect('empresa_dashboard')
 
     # Filtrar empleados por empresa (multi-tenancy)
@@ -324,7 +346,14 @@ def crear_usuario(request):
         elif User.objects.filter(email=email).exists():
             messages.error(request, 'Este correo electrónico ya está registrado.')
         else:
-            user = User.objects.create_user(username, email, password)
+            if role == 'empleado':
+                # Crear inactivo y generar contraseña temporal aleatoria
+                temp_password = User.objects.make_random_password()
+                user = User.objects.create_user(username, email, temp_password)
+                user.is_active = False
+            else:
+                user = User.objects.create_user(username, email, password)
+                
             user.first_name = first_name
             user.last_name = last_name if role != 'empleado' else ''
             user.save()
@@ -341,21 +370,34 @@ def crear_usuario(request):
                 group, _ = Group.objects.get_or_create(name='Empresas')
                 user.groups.add(group)
             
-            # Enviar Correo con credenciales (Formato Premium HTML)
+            # Enviar Correo (Formato Premium HTML)
             try:
-                login_url = f"{request.scheme}://{request.get_host()}/login/"
-                context_email = {
-                    'first_name': first_name,
-                    'username': username,
-                    'password': password,
-                    'login_url': login_url
-                }
+                if role == 'empleado':
+                    token = default_token_generator.make_token(user)
+                    uid = urlsafe_base64_encode(force_bytes(user.pk))
+                    activacion_url = f"{request.scheme}://{request.get_host()}/confirmar-empleado/{uid}/{token}/"
+                    
+                    context_email = {
+                        'first_name': first_name,
+                        'username': username,
+                        'activacion_url': activacion_url
+                    }
+                    html_message = render_to_string('emails/confirmar_contrasena_empleado.html', context_email)
+                    asunto = 'Confirma tu Cuenta y Establece tu Contraseña - CyberPyme'
+                    success_msg = f'Empleado "{first_name}" creado correctamente y notificado para establecer su contraseña.'
+                else:
+                    login_url = f"{request.scheme}://{request.get_host()}/login/"
+                    context_email = {
+                        'first_name': first_name,
+                        'username': username,
+                        'password': password,
+                        'login_url': login_url
+                    }
+                    html_message = render_to_string('emails/credenciales.html', context_email)
+                    asunto = 'Bienvenido a CyberPyme - Tus Credenciales de Acceso'
+                    success_msg = f'Empresa "{first_name}" creada correctamente y notificada por correo.'
                 
-                html_message = render_to_string('emails/credenciales.html', context_email)
                 plain_message = strip_tags(html_message)
-                
-                asunto = 'Bienvenido a CyberPyme - Tus Credenciales de Acceso'
-                
                 send_mail(
                     asunto,
                     plain_message,
@@ -363,8 +405,7 @@ def crear_usuario(request):
                     [email],
                     html_message=html_message
                 )
-                
-                messages.success(request, f'{"Empleado" if role=="empleado" else "Empresa"} "{first_name}" creado correctamente y notificado por correo.')
+                messages.success(request, success_msg)
             except Exception as e:
                 print(f"Error enviando correo: {e}")
                 messages.warning(request, f'El usuario fue creado correctamente, pero hubo un detalle al enviar el correo de notificación.')
@@ -609,17 +650,24 @@ def ver_curso(request, curso_id):
                 except Opcion.DoesNotExist:
                     pass
         
+        from django.urls import reverse
         porcentaje_exito = (correctas / total * 100) if total > 0 else 100
-        if porcentaje_exito >= 70:
+        score = int(porcentaje_exito)
+        if score >= 70:
             progreso.estado = 'completado'
             progreso.porcentaje = 100
             import datetime
             progreso.fecha_completado = datetime.datetime.now()
             progreso.save()
-            messages.success(request, f'¡Felicidades! Completaste el curso "{curso.titulo}" con {correctas}/{total} respuestas correctas.')
-            return redirect('home')
+            messages.success(request, f'¡Felicidades! Completaste el curso "{curso.titulo}" con una puntuación de {score}/100.')
+            return redirect(f"{reverse('ver_curso', args=[curso.id])}?puntuacion={score}")
         else:
-            messages.warning(request, f'No has alcanzado el puntaje mínimo ({correctas}/{total}). Vuelve a intentarlo.')
+            progreso.estado = 'en_curso'
+            progreso.porcentaje = 0
+            progreso.ultima_pagina = 0
+            progreso.save()
+            messages.error(request, f'No has alcanzado el puntaje mínimo de 70/100. Puntuación obtenida: {score}/100. Debes volver a iniciar el curso.')
+            return redirect(f"{reverse('ver_curso', args=[curso.id])}?puntuacion={score}")
 
     context = {
         'curso': curso,
@@ -911,6 +959,36 @@ def confirmar_registro(request, uidb64, token):
         user.save()
         messages.success(request, '¡Tu cuenta ha sido activada con éxito! Ya puedes iniciar sesión.')
         return redirect('login')
+    else:
+        messages.error(request, 'El enlace de confirmación es inválido o ha expirado.')
+        return redirect('home')
+
+def confirmar_contrasena_empleado(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            if not password or not confirm_password:
+                messages.error(request, 'Ambos campos de contraseña son obligatorios.')
+            elif password != confirm_password:
+                messages.error(request, 'Las contraseñas no coinciden.')
+            elif len(password) < 8:
+                messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+            else:
+                user.set_password(password)
+                user.is_active = True
+                user.save()
+                messages.success(request, '¡Tu contraseña ha sido establecida con éxito! Ya puedes iniciar sesión.')
+                return redirect('login')
+
+        return render(request, 'principal/confirmar_contrasena_empleado.html', {'employee': user})
     else:
         messages.error(request, 'El enlace de confirmación es inválido o ha expirado.')
         return redirect('home')

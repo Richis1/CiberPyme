@@ -99,7 +99,7 @@
         .user-name {
             font-family: 'Playfair Display', serif;
             font-size: 3rem;
-            color: var(--navy);
+            color: #000000;
             margin: 10px 0;
             border-bottom: 2px solid var(--gold);
             padding-bottom: 5px;
@@ -202,7 +202,8 @@
             <div class="date">Expedido el {{ fecha_hoy|date:"d \d\e F \d\e Y" }}</div>
 
             <div class="footer">
-                <div class="signature">
+                <div class="signature" style="position: relative;">
+                    <img src="{% static 'principal/images/firma_julio.png' %}" alt="Firma Julio Cesar Gonzalez Rosado" style="height: 110px; position: absolute; bottom: 42px; left: -35px; mix-blend-mode: multiply;">
                     Dirección de Tecnologías<br>
                     SSP Yucatán
                 </div>

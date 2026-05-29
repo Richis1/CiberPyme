@@ -31,7 +31,7 @@
                 <div class="employee-name">{{ progreso.usuario.first_name }} {{ progreso.usuario.last_name }}</div>
                 {% endif %}
                 <p>Completado exitosamente demostrando conocimientos en {{ progreso.curso.titulo|lower }}.</p>
-                <a href="{% url 'descargar_diploma' progreso.curso.id %}" target="_blank" class="btn btn-download text-decoration-none d-flex align-items-center justify-content-center">
+                <a href="{% url 'descargar_diploma' progreso.curso.id %}{% if is_company %}?usuario_id={{ progreso.usuario.id }}{% endif %}" target="_blank" class="btn btn-download text-decoration-none d-flex align-items-center justify-content-center">
                     <i class="bi bi-patch-check-fill me-2"></i>Ver Diploma
                 </a>
             </div>
