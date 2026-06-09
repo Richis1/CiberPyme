@@ -543,14 +543,12 @@ textarea:not(.form-floating > .form-control) {
     border-color: var(--border) !important;
 }
 
-select option {
-    background-color: #1e293b !important;
-    color: #f8fafc !important;
+select {
+    color-scheme: dark !important;
 }
 
-:root[data-theme="light"] select option {
-    background-color: #ffffff !important;
-    color: #0f172a !important;
+:root[data-theme="light"] select {
+    color-scheme: light !important;
 }
 
 input::placeholder,
