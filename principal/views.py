@@ -353,15 +353,23 @@ def crear_usuario(request):
                 # SEGURIDAD: Cifra la contraseña temporal con PBKDF2-SHA256 al crear el usuario
                 user = User.objects.create_user(username, email, temp_password)
                 user.is_active = False
+            elif role == 'admin':
+                if not request.user.is_superuser:
+                    messages.error(request, 'Solo el adminMaster puede crear otros administradores.')
+                    return redirect('admin_dashboard')
+                # SEGURIDAD: Cifra la contraseña del administrador con PBKDF2-SHA256 al crear el usuario
+                user = User.objects.create_user(username, email, password)
+                user.is_staff = True
+                user.is_active = True
             else:
                 # SEGURIDAD: Cifra la contraseña de la empresa/staff con PBKDF2-SHA256 al crear el usuario
                 user = User.objects.create_user(username, email, password)
                 
             user.first_name = first_name
-            user.last_name = last_name if role != 'empleado' else ''
+            user.last_name = last_name if role not in ('empleado', 'admin') else ''
             user.save()
             
-            if curp:
+            if curp and role == 'empleado':
                 user.perfil.curp = curp
                 user.perfil.save()
 
@@ -400,7 +408,10 @@ def crear_usuario(request):
                     }
                     html_message = render_to_string('emails/credenciales.html', context_email)
                     asunto = 'Bienvenido a CyberPyme - Tus Credenciales de Acceso'
-                    success_msg = f'Empresa "{first_name}" creada correctamente y notificada por correo.'
+                    if role == 'admin':
+                        success_msg = f'Administrador "{first_name}" creado correctamente y notificado por correo.'
+                    else:
+                        success_msg = f'Empresa "{first_name}" creada correctamente y notificada por correo.'
                 
                 plain_message = strip_tags(html_message)
                 send_mail(
