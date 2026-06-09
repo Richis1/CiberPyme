@@ -118,10 +118,17 @@
                             <label class="form-label text-muted small fw-bold">Correo Electrónico</label>
                             <input type="email" name="email" class="form-control" value="{{ usuario.email }}" required>
                         </div>
+                        {% if not usuario.is_staff and not usuario.is_superuser %}
                         <div class="mb-3">
                             <label class="form-label text-muted small fw-bold">Nueva Contraseña (Dejar en blanco para mantener la actual)</label>
                             <input type="password" name="password" class="form-control" placeholder="••••••••">
                         </div>
+                        {% else %}
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Nueva Contraseña</label>
+                            <input type="text" class="form-control" placeholder="No se puede cambiar la contraseña de administradores" disabled style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">
+                        </div>
+                        {% endif %}
                         {% if not usuario.is_staff and not usuario.is_superuser %}
                         <div class="mb-3 form-check form-switch mt-4">
                             <input class="form-check-input" type="checkbox" name="is_active" id="isActiveSwitch{{ usuario.id }}" {% if usuario.is_active %}checked{% endif %}>

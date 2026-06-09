@@ -442,9 +442,12 @@ def editar_usuario(request, user_id):
         else:
             user.is_active = request.POST.get('is_active') == 'on'
         
-        # Si se ingresó una nueva contraseña, actualizarla
+        # Si se ingresó una nueva contraseña, actualizarla (excepto para administradores)
         if password:
-            user.set_password(password)
+            if user.is_staff or user.is_superuser:
+                messages.error(request, 'No está permitido cambiar la contraseña de un administrador desde aquí.')
+            else:
+                user.set_password(password)
             
         user.save()
         messages.success(request, f'Usuario "{user.username}" actualizado correctamente.')
