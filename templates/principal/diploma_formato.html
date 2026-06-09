@@ -146,13 +146,19 @@
         @media print {
             body { background: white; }
             .diploma-wrapper { box-shadow: none; margin: 0; }
-            .btn-print { display: none; }
+            .action-buttons { display: none; }
         }
 
-        .btn-print {
+        .action-buttons {
             position: fixed;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .btn-action {
             background: var(--navy);
             color: white;
             border: none;
@@ -164,24 +170,43 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: all 0.3s;
+            text-decoration: none;
         }
 
-        .btn-print:hover {
+        .btn-action:hover {
             transform: translateY(-2px);
             background: #1e293b;
+        }
+
+        .btn-download {
+            background: var(--gold);
+            color: #ffffff;
+        }
+
+        .btn-download:hover {
+            background: #b5904b;
         }
     </style>
 </head>
 <body>
-    <button class="btn-print" onclick="window.print()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
-            <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
-        </svg>
-        Imprimir Diploma
-    </button>
+    <div class="action-buttons">
+        <button class="btn-action btn-download" onclick="descargarPDF()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            Descargar PDF
+        </button>
+        <button class="btn-action" onclick="window.print()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+                <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+            </svg>
+            Imprimir
+        </button>
+    </div>
 
     <div class="diploma-wrapper">
         <div class="diploma-content">
@@ -212,5 +237,31 @@
             <img src="{% static 'principal/images/escudo_ssp.png' %}" class="seal" width="200">
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        function descargarPDF() {
+            const element = document.querySelector('.diploma-wrapper');
+            
+            // Opciones de configuración para generar el PDF de alta calidad
+            const opt = {
+                margin:       0,
+                filename:     'Diploma_{{ user.first_name }}_{{ user.last_name }}_{{ curso.titulo|slugify }}.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true,
+                    letterRendering: true
+                },
+                jsPDF:        { 
+                    unit: 'px', 
+                    format: [1000, 700], 
+                    orientation: 'landscape' 
+                }
+            };
+            
+            // Generar y guardar el archivo PDF
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
 </body>
 </html>
