@@ -29,7 +29,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-7!r*x(hx5vr$)tfzy%k_7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't')
 
-# ALLOWED_HOSTS can be a comma-separated list of hosts
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS')
 if allowed_hosts_env:
     ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
