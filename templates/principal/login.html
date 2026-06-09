@@ -23,7 +23,15 @@
                 {% if form.errors %}
                 <div class="alert-custom animate__animated animate__shakeX" role="alert">
                     <i class="bi bi-exclamation-octagon-fill fs-4"></i>
-                    <span>Usuario o contraseña incorrectos.</span>
+                    <span>
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        {% else %}
+                            Usuario o contraseña incorrectos.
+                        {% endif %}
+                    </span>
                 </div>
                 {% endif %}
 
@@ -34,21 +42,18 @@
                     <label for="id_username">Usuario</label>
                 </div>
 
-                <div class="form-floating mb-4">
-                    <input type="password" name="password" id="id_password"
-                        class="form-control {% if form.errors %}is-invalid{% endif %}" placeholder=" "
-                        autocomplete="current-password" required>
-                    <label for="id_password">Contraseña</label>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4 px-1">
-                    <label class="d-flex align-items-center gap-2 mb-0"
-                        style="color: var(--text-muted); cursor: pointer; font-size: 0.9rem;">
-                        <input type="checkbox" name="remember"
-                            style="accent-color: var(--accent); width: 18px; height: 18px;"> Recordarme
-                    </label>
-                    <a href="#" class="text-decoration-none small" style="color: var(--accent);">¿Olvidaste tu
-                        clave?</a>
+                <div class="input-group mb-4">
+                    <div class="form-floating flex-grow-1">
+                        <input type="password" name="password" id="id_password"
+                            class="form-control {% if form.errors %}is-invalid{% endif %}" placeholder=" "
+                            style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
+                            autocomplete="current-password" required>
+                        <label for="id_password">Contraseña</label>
+                    </div>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn"
+                        style="border: 1px solid var(--border); border-left: none; background: var(--bg-input); color: var(--text-muted); border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                        <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                    </button>
                 </div>
 
                 <button type="submit"
@@ -71,7 +76,22 @@
 {% block extra_js %}
 <script>
     (function () {
-        // Lógica simplificada: El tema ya se maneja en base.html
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const passwordInput = document.getElementById('id_password');
+                const icon = document.getElementById('togglePasswordIcon');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        }
     })();
 </script>
 {% endblock %}

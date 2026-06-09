@@ -160,6 +160,18 @@
                                 style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text);"
                                 required>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" name="password" id="employee_password" class="form-control"
+                                    style="background: var(--bg-input); border: 1px solid var(--border); color: var(--text); border-top-right-radius: 0; border-bottom-right-radius: 0;"
+                                    placeholder="Ingrese la contraseña" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn"
+                                    style="border: 1px solid var(--border); border-left: none; background: var(--bg-input); color: var(--text-muted); border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer border-top-0">
                         <button type="button" class="btn btn-secondary border-0"
@@ -171,5 +183,27 @@
         </div>
     </div>
 </div>
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const passwordInput = document.getElementById('employee_password');
+                const icon = document.getElementById('togglePasswordIcon');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        }
+    })();
+</script>
 {% endblock %}

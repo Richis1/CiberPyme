@@ -111,10 +111,13 @@ def descargar_diploma(request, curso_id):
         messages.error(request, 'El usuario aún no ha completado este curso.')
         return redirect('home')
     
+    # Usar la fecha de finalización del progreso (fecha_completado)
+    fecha_diploma = progreso.fecha_completado if progreso.fecha_completado else datetime.datetime.now()
+    
     context = {
         'curso': curso,
         'user': target_user,
-        'fecha_hoy': datetime.datetime.now()
+        'fecha_hoy': fecha_diploma
     }
     return render(request, 'principal/diploma_formato.html', context)
 
@@ -133,20 +136,20 @@ def empresa_dashboard(request):
         return redirect('home')
     
     if request.method == 'POST':
-        # Alta de empleado
+        # Alta de empleado y hasheo 
         username = request.POST.get('username')
         email = request.POST.get('email')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
+        password = request.POST.get('password')
         if User.objects.filter(username=username).exists():
             messages.error(request, 'El CURP ya está registrado.')
         elif User.objects.filter(email=email).exists():
             messages.error(request, 'Este correo electrónico ya está registrado.')
         else:
-            # Generar contraseña temporal aleatoria
-            temp_password = User.objects.make_random_password()
-            user = User.objects.create_user(username, email, temp_password)
-            user.is_active = False  # Inactivo por defecto hasta confirmar contraseña
+            # SEGURIDAD: Cifra la contraseña del empleado con PBKDF2-SHA256 al crear el usuario
+            user = User.objects.create_user(username, email, password)
+            user.is_active = True  # Activo inmediatamente ya que tiene contraseña establecida
             user.first_name = first_name
             user.last_name = last_name
             user.save()
@@ -170,22 +173,20 @@ def empresa_dashboard(request):
                     defaults={'estado': estado, 'porcentaje': 0}
                 )
             
-            # Enviar Correo de Activación (Formato Premium HTML)
+            # Enviar Correo de Credenciales (Formato Premium HTML)
             try:
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                activacion_url = f"{request.scheme}://{request.get_host()}/confirmar-empleado/{uid}/{token}/"
-                
+                login_url = f"{request.scheme}://{request.get_host()}/login/"
                 context_email = {
                     'first_name': first_name,
                     'username': username,
-                    'activacion_url': activacion_url
+                    'password': password,
+                    'login_url': login_url
                 }
                 
-                html_message = render_to_string('emails/confirmar_contrasena_empleado.html', context_email)
+                html_message = render_to_string('emails/credenciales.html', context_email)
                 plain_message = strip_tags(html_message)
                 
-                asunto = 'Confirma tu Cuenta y Establece tu Contraseña - CyberPyme'
+                asunto = 'Bienvenido a CyberPyme - Tus Credenciales de Acceso'
                 
                 send_mail(
                     asunto,
@@ -194,10 +195,10 @@ def empresa_dashboard(request):
                     [email],
                     html_message=html_message
                 )
-                messages.success(request, f'Empleado "{first_name}" dado de alta. Se ha enviado un correo de confirmación para establecer su contraseña.')
+                messages.success(request, f'Empleado "{first_name}" dado de alta. Se ha enviado un correo con sus credenciales.')
             except Exception as e:
                 print(f"Error enviando correo: {e}")
-                messages.warning(request, f'Empleado creado, pero hubo un detalle al enviar el correo de activación.')
+                messages.warning(request, f'Empleado creado, pero hubo un detalle al enviar el correo con las credenciales.')
  
             return redirect('empresa_dashboard')
 
@@ -349,9 +350,11 @@ def crear_usuario(request):
             if role == 'empleado':
                 # Crear inactivo y generar contraseña temporal aleatoria
                 temp_password = User.objects.make_random_password()
+                # SEGURIDAD: Cifra la contraseña temporal con PBKDF2-SHA256 al crear el usuario
                 user = User.objects.create_user(username, email, temp_password)
                 user.is_active = False
             else:
+                # SEGURIDAD: Cifra la contraseña de la empresa/staff con PBKDF2-SHA256 al crear el usuario
                 user = User.objects.create_user(username, email, password)
                 
             user.first_name = first_name
@@ -373,7 +376,9 @@ def crear_usuario(request):
             # Enviar Correo (Formato Premium HTML)
             try:
                 if role == 'empleado':
+                    # SEGURIDAD: Genera un token firmado criptográficamente con HMAC-SHA256
                     token = default_token_generator.make_token(user)
+                    # SEGURIDAD: Codifica el ID del usuario en Base64 seguro para URL
                     uid = urlsafe_base64_encode(force_bytes(user.pk))
                     activacion_url = f"{request.scheme}://{request.get_host()}/confirmar-empleado/{uid}/{token}/"
                     
@@ -417,6 +422,60 @@ def crear_usuario(request):
 def lista_usuarios(request):
     usuarios = User.objects.all().order_by('-date_joined')
     return render(request, 'principal/lista_usuarios.html', {'usuarios': usuarios})
+
+@staff_member_required
+def editar_usuario(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        password = request.POST.get('password')
+        
+        user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
+        
+        # Los administradores no se pueden desactivar
+        if user.is_staff or user.is_superuser:
+            user.is_active = True
+        else:
+            user.is_active = request.POST.get('is_active') == 'on'
+        
+        # Si se ingresó una nueva contraseña, actualizarla
+        if password:
+            user.set_password(password)
+            
+        user.save()
+        messages.success(request, f'Usuario "{user.username}" actualizado correctamente.')
+    return redirect('lista_usuarios')
+
+@staff_member_required
+def eliminar_usuario(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    username = user.username
+    if user == request.user:
+        messages.error(request, 'No puedes eliminar tu propio usuario.')
+    elif not user.is_staff and not user.is_superuser:
+        messages.error(request, 'No está permitido eliminar a este usuario (empresa/empleado), solo puedes desactivarlo.')
+    else:
+        user.delete()
+        messages.success(request, f'Usuario "{username}" eliminado correctamente.')
+    return redirect('lista_usuarios')
+
+@staff_member_required
+def toggle_usuario_activo(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user == request.user:
+        messages.error(request, 'No puedes desactivar tu propio usuario.')
+    elif user.is_staff or user.is_superuser:
+        messages.error(request, 'Los administradores no se pueden desactivar.')
+    else:
+        user.is_active = not user.is_active
+        user.save()
+        estado = "activado" if user.is_active else "desactivado"
+        messages.success(request, f'Usuario "{user.username}" {estado} correctamente.')
+    return redirect('lista_usuarios')
 
 @staff_member_required
 def gestionar_cursos(request):
@@ -557,7 +616,7 @@ def editar_curso(request, curso_id):
         textos_pregunta = request.POST.getlist('pregunta_texto[]')
         indices_pregunta = request.POST.getlist('question_form_index[]')
         
-        # Siempre borramos y recreamos (o actualizamos si quisiéramos ser más finos, 
+        # Siempre borramos y recreamos ( 
         # pero la lógica actual es borrar todo), pero ahora lo hacemos incluso si la lista está vacía
         curso.preguntas.all().delete()
         
@@ -622,6 +681,10 @@ def ver_curso(request, curso_id):
     progreso = None
     if not is_readonly:
         progreso, _ = ProgresoCurso.objects.get_or_create(usuario=request.user, curso=curso)
+        
+        # Bloquear nuevos intentos si el curso ya fue aprobado
+        if progreso.estado == 'completado':
+            is_readonly = True
         
         # Guardar progreso parcial vía AJAX
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'POST':

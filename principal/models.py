@@ -43,8 +43,8 @@ class ProgresoCurso(models.Model):
 class Perfil(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     empresa = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='empleados_asociados')
-    curp = models.CharField(max_length=18, unique=True, null=True, blank=True)
-    rfc = models.CharField(max_length=13, unique=True, null=True, blank=True)
+    curp = models.CharField(max_length=255, null=True, blank=True)
+    rfc = models.CharField(max_length=255, null=True, blank=True)
     nombre_empresa = models.CharField(max_length=200, null=True, blank=True)
     telefono = models.CharField(max_length=20, null=True, blank=True)
     notas = models.TextField(null=True, blank=True)
@@ -54,6 +54,29 @@ class Perfil(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
+
+    @property
+    def curp_desencriptado(self):
+        from .crypto_helper import decrypt_value
+        return decrypt_value(self.curp)
+
+    @property
+    def rfc_desencriptado(self):
+        from .crypto_helper import decrypt_value
+        return decrypt_value(self.rfc)
+
+    def save(self, *args, **kwargs):
+        from .crypto_helper import encrypt_value, decrypt_value
+        if self.curp:
+            decrypted = decrypt_value(self.curp)
+            if decrypted == self.curp:
+                self.curp = encrypt_value(self.curp)
+        if self.rfc:
+            decrypted = decrypt_value(self.rfc)
+            if decrypted == self.rfc:
+                self.rfc = encrypt_value(self.rfc)
+        super().save(*args, **kwargs)
+
 
 @receiver(post_save, sender=User)
 def crear_perfil(sender, instance, created, **kwargs):

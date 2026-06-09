@@ -40,22 +40,48 @@
                         <td>{{ usuario.get_full_name|default:"-" }}</td>
                         <td>{{ usuario.email }}</td>
                         <td>
-                            {% if usuario.is_superuser %}
-                            <span class="user-badge badge-admin">Master Admin</span>
-                            {% elif usuario.is_staff %}
-                            <span class="user-badge badge-staff">Administrador</span>
-                            {% else %}
-                            <span class="user-badge badge-user">Usuario Final</span>
-                            {% endif %}
+                            <div class="d-flex flex-column gap-1">
+                                <div>
+                                    {% if usuario.is_superuser %}
+                                    <span class="user-badge badge-admin">Master Admin</span>
+                                    {% elif usuario.is_staff %}
+                                    <span class="user-badge badge-staff">Administrador</span>
+                                    {% elif usuario.groups.first %}
+                                    <span class="user-badge badge-user">{{ usuario.groups.first.name }}</span>
+                                    {% else %}
+                                    <span class="user-badge badge-user">Usuario Final</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if usuario.is_active %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.75rem;">Activo</span>
+                                    {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.75rem;">Inactivo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </td>
                         <td class="text-muted small">{{ usuario.date_joined|date:"d/m/Y" }}</td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">
-                                <button class="action-btn" title="Editar"><i class="bi bi-pencil-square"></i></button>
-                                <button class="action-btn" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
+                                {% if not usuario.is_staff and not usuario.is_superuser %}
+                                <a href="{% url 'toggle_usuario_activo' usuario.id %}" class="btn btn-sm btn-outline-secondary" title="{% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                    {% if usuario.is_active %}
+                                    <i class="bi bi-toggle-on text-success" style="font-size: 1.25rem;"></i>
+                                    {% else %}
+                                    <i class="bi bi-toggle-off text-muted" style="font-size: 1.25rem;"></i>
+                                    {% endif %}
+                                </a>
+                                {% else %}
+                                <span class="btn btn-sm btn-outline-secondary disabled border-0" title="Los administradores no se pueden desactivar">
+                                    <i class="bi bi-shield-fill text-accent" style="font-size: 1.1rem;"></i>
+                                </span>
+                                {% endif %}
+                                <button class="action-btn" title="Editar" data-bs-toggle="modal" data-bs-target="#editModal{{ usuario.id }}"><i class="bi bi-pencil-square"></i></button>
                             </div>
                         </td>
                     </tr>
+
                     {% empty %}
                     <tr>
                         <td colspan="6" class="text-center py-5">
@@ -67,5 +93,50 @@
             </table>
         </div>
     </div>
+
+    <!-- Modales de Edición de Usuario (fuera de la tabla para evitar problemas de renderizado y z-index) -->
+    {% for usuario in usuarios %}
+    <div class="modal fade" id="editModal{{ usuario.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ usuario.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-gradient" id="editModalLabel{{ usuario.id }}">Editar Usuario: {{ usuario.username }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'editar_usuario' usuario.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Nombre</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ usuario.first_name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Apellidos / Nombre de Empresa</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ usuario.last_name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control" value="{{ usuario.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Nueva Contraseña (Dejar en blanco para mantener la actual)</label>
+                            <input type="password" name="password" class="form-control" placeholder="••••••••">
+                        </div>
+                        {% if not usuario.is_staff and not usuario.is_superuser %}
+                        <div class="mb-3 form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="isActiveSwitch{{ usuario.id }}" {% if usuario.is_active %}checked{% endif %}>
+                            <label class="form-check-label fw-bold text-muted small" for="isActiveSwitch{{ usuario.id }}">Usuario Activo</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-light px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-custom px-4">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

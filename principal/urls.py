@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from .forms import CustomAuthenticationForm
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -17,6 +18,9 @@ urlpatterns = [
     path('descargar-diploma/<int:curso_id>/', views.descargar_diploma, name='descargar_diploma'),
     path('crear-usuario/', views.crear_usuario, name='crear_usuario'),
     path('lista-usuarios/', views.lista_usuarios, name='lista_usuarios'),
+    path('editar-usuario/<int:user_id>/', views.editar_usuario, name='editar_usuario'),
+    path('eliminar-usuario/<int:user_id>/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('toggle-usuario/<int:user_id>/', views.toggle_usuario_activo, name='toggle_usuario_activo'),
     path('gestionar-cursos/', views.gestionar_cursos, name='gestionar_cursos'),
     path('auditoria/', views.auditoria, name='auditoria'),
     path('crear-curso/', views.crear_curso, name='crear_curso'),
@@ -32,7 +36,10 @@ urlpatterns = [
     path('editar-simulacion/<int:sim_id>/', views.editar_simulacion, name='editar_simulacion'),
     path('eliminar-simulacion/<int:sim_id>/', views.eliminar_simulacion, name='eliminar_simulacion'),
 
-    path('login/', auth_views.LoginView.as_view(template_name='principal/login.html'), name='login'),
+    path('login/', auth_views.LoginView.as_view(
+        template_name='principal/login.html',
+        authentication_form=CustomAuthenticationForm
+    ), name='login'),
     path('logout/', views.custom_logout, name='logout'),
     path('registro-empresa/', views.registro_empresa, name='registro_empresa'),
     path('confirmar-registro/<str:uidb64>/<str:token>/', views.confirmar_registro, name='confirmar_registro'),
