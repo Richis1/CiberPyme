@@ -48,6 +48,16 @@
                 </div>
             </div>
 
+            <div class="form-floating mb-3" id="div_empresa">
+                <select name="empresa" id="id_empresa" class="form-select" style="background-color: var(--bg-input); color: var(--text);">
+                    <option value="">-- Ninguna / Sin empresa --</option>
+                    {% for empresa in empresas %}
+                        <option value="{{ empresa.id }}">{{ empresa.first_name }} ({{ empresa.username }})</option>
+                    {% endfor %}
+                </select>
+                <label for="id_empresa">Empresa Asociada</label>
+            </div>
+
             <div class="form-floating mb-3">
                 <input type="email" name="email" id="id_email" class="form-control" placeholder="Correo Electrónico"
                     required>
@@ -108,6 +118,7 @@
         const divUsername = document.getElementById('div_username');
         const divLastName = document.getElementById('div_last_name');
         const divPassword = document.getElementById('div_password');
+        const divEmpresa = document.getElementById('div_empresa');
 
         const labelFirstName = document.getElementById('label_first_name');
         const inputFirstName = document.getElementById('id_first_name');
@@ -119,11 +130,27 @@
         const inputPassword = document.getElementById('id_password');
 
         function updateLabels() {
-            if (roleEmpresa.checked || (roleAdmin && roleAdmin.checked)) {
+            if (roleEmpleado.checked) {
+                divCurp.style.display = 'block';
+                divUsername.style.display = 'none';
+                divLastName.style.display = 'block';
+                divPassword.style.display = 'none';
+                if (divEmpresa) divEmpresa.style.display = 'block';
+
+                labelFirstName.textContent = 'Nombre(s)';
+                inputFirstName.placeholder = 'Nombre(s)';
+                labelLastName.textContent = 'Apellidos';
+                inputLastName.placeholder = 'Apellidos';
+
+                inputCurp.required = true;
+                inputUsername.required = false;
+                inputPassword.required = false;
+            } else {
                 divCurp.style.display = 'none';
                 divUsername.style.display = 'block';
                 divLastName.style.display = 'block';
                 divPassword.style.display = 'block';
+                if (divEmpresa) divEmpresa.style.display = 'none';
 
                 if (roleEmpresa.checked) {
                     labelFirstName.textContent = 'Nombre de la Empresa';
@@ -140,20 +167,6 @@
                 inputCurp.required = false;
                 inputUsername.required = true;
                 inputPassword.required = true;
-            } else {
-                divCurp.style.display = 'block';
-                divUsername.style.display = 'none';
-                divLastName.style.display = 'block';
-                divPassword.style.display = 'none';
-
-                labelFirstName.textContent = 'Nombre(s)';
-                inputFirstName.placeholder = 'Nombre(s)';
-                labelLastName.textContent = 'Apellidos';
-                inputLastName.placeholder = 'Apellidos';
-
-                inputCurp.required = true;
-                inputUsername.required = false;
-                inputPassword.required = false;
             }
         }
 

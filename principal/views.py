@@ -369,8 +369,16 @@ def crear_usuario(request):
             user.last_name = last_name if role not in ('empleado', 'admin') else ''
             user.save()
             
-            if curp and role == 'empleado':
-                user.perfil.curp = curp
+            if role == 'empleado':
+                if curp:
+                    user.perfil.curp = curp
+                empresa_id = request.POST.get('empresa')
+                if empresa_id:
+                    try:
+                        empresa_user = User.objects.get(id=empresa_id, groups__name='Empresas')
+                        user.perfil.empresa = empresa_user
+                    except User.DoesNotExist:
+                        pass
                 user.perfil.save()
 
             from django.contrib.auth.models import Group
@@ -428,7 +436,9 @@ def crear_usuario(request):
 
             return redirect('admin_dashboard')
 
-    return render(request, 'principal/crear_usuario.html')
+    empresas = User.objects.filter(groups__name='Empresas').order_by('first_name', 'username')
+    return render(request, 'principal/crear_usuario.html', {'empresas': empresas})
+
 @staff_member_required
 def lista_usuarios(request):
     usuarios = User.objects.all().order_by('-date_joined')
